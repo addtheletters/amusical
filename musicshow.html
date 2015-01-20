@@ -54,7 +54,7 @@
 
     function showNode(node, x, y, width, height, yshrink) {
     	yshrink = yshrink || 10;
-    	console.log("plotting node");
+    	console.log("plotting node (recursive)");
         plotRect(leContext, x, y, width, height, getStyle(node), "black", 1); // baseplate
         if( node.value instanceof Array ){
 			console.log("showNode: node value is an array");
@@ -66,7 +66,27 @@
 				lastStartPos += subwidth;
 			}
 		}
+    }
 
+    function showNodeIter(){
+        // unfinished
+        yshrink = yshrink || 10;
+        console.log("plotting node (iterative)");
+        var queue = [this];
+        while(queue.length > 0){
+            var node = queue.dequeue();
+            if(!(node.value instanceof Array)){
+                //show
+                plotRect(leContext, x, y, width, height, getStyle(node), "black", 1);
+                continue;
+            }
+            for(var i = 0; i < node.value.length; i++){
+                queue.push(node.value[i]);
+            }
+            //show
+            plotRect(leContext, x, y, width, height, getStyle(node), "black", 1);
+        }
+        return;
     }
 
     function loadCanvas() {

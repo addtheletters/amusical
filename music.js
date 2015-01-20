@@ -6,7 +6,6 @@ var Note = function( index ){
 		//return "[Note: num(" + this.num + "), dur(" + this.duration + ")]";
 	//}
 
-
 function MusicNode( duration, value ){
 	this.duration = duration;
 	if( !value ){
@@ -75,7 +74,24 @@ function MusicNode( duration, value ){
 	MusicNode.prototype.FillByPattern = function(pattern){
 		return FillByPattern(this, pattern);
 	}
-
+	MusicNode.prototype.getSequentialLeafList =  function(){
+		var leaves = [];
+		var stack = [this];
+		while(stack.length > 0){
+			var node = stack.pop();
+			if(!(node.value instanceof Array)){
+				if(!(node.value instanceof Note)){
+					console.log("MusicNode: Tried to get leaves / as leaf an unset node.");
+				}
+				leaves.push(node);
+				continue;
+			}
+			for(var i = node.value.length-1; i >= 0; i--){
+				stack.push(node.value[i]);
+			}
+		}
+		return leaves;
+	}
 
 // BPM = beats per measure
 // beatVal = 1/note val, (quarter, eighth)
@@ -99,10 +115,10 @@ function BuildBob( BPM, beatVal ){
 var PATTERNS = [
 	[1, 1, 1],
 	[1, 1],
-	[2, 1],
-	[1, 2],
-	[3, 1],
-	[1, 3], 
+	//[2, 1],
+	//[1, 2],
+	//[3, 1],
+	//[1, 3], 
 ];
 
 function BuildRhythm( BPM, patterns, minBeatDuration, complexity ){
