@@ -1,58 +1,107 @@
 <html>
-	<head>
-		<title>Canvas?</title>
-		<style type="text/css">
-			body{
-				font-family:monospace;
-				font-size: 13px;
+
+<head>
+    <title>Canvas?</title>
+    <style type="text/css">
+    body {
+        font-family: monospace;
+        font-size: 13px;
+    }
+    .centered {
+        position: relative;
+        max-width: 1400px;
+        height: auto;
+        margin: auto;
+        padding: 10px;
+        text-align: center;
+    }
+    </style>
+    <script src="music.js">
+    // music node stuff
+    </script>
+    <script src="colors.js">
+    // color functions
+    </script>
+    <script type="text/javascript">
+
+    var canvasID = "drawspace";
+    var leCanvas;
+    var leContext;
+
+    var dispnodes = [];
+
+    function plotRect(context, x, y, width, height, fillStyle, strokeStyle, lineWidth) {
+        if (fillStyle) {
+            context.fillStyle = fillStyle;
+            context.fillRect(x, y, width, height);
+        }
+        if (strokeStyle) {
+        	if(lineWidth){
+        		context.lineWidth = lineWidth;
+        	}
+        	context.strokeStyle = strokeStyle;
+            context.beginPath();
+            context.rect(x, y, width, height);
+            context.stroke();
+        }
+    }
+
+    function plotText(text, context, x, y, maxWidth, font, fillStyle){
+    	context.font = font;
+    	context.fillStyle = fillStyle;
+    	context.fillText(text, x, y, maxWidth);
+    }
+
+    function showNode(node, x, y, width, height, yshrink) {
+    	yshrink = yshrink || 10;
+    	console.log("plotting node");
+        plotRect(leContext, x, y, width, height, getStyle(node), "black", 1); // baseplate
+        if( node.value instanceof Array ){
+			console.log("showNode: node value is an array");
+			var lastStartPos = 0;
+			for(var i = 0; i < node.value.length; i++){
+				var subdur = node.value[i].getDuration();
+				var subwidth = width * subdur / node.getDuration();
+				showNode(node.value[i], x + lastStartPos, y+yshrink, subwidth, height-2*yshrink);
+				lastStartPos += subwidth;
 			}
-			.centered{
-				position: relative;
-				max-width: 1400px;
-			    height: auto;
-			    margin: auto;
-			    padding: 10px;
-			    text-align: center;
-			}
-		</style>
-		<script src="music.js"> // music node stuff </script>
-		<script src="colors.js"> // color functions </script>
-		<script type="text/javascript">
+		}
 
-			var canvasID = "drawspace";
-			var leCanvas;
-			var leContext;
+    }
 
-			var haha;
+    function loadCanvas() {
+        leCanvas = document.getElementById(canvasID);
+        leContext = leCanvas.getContext("2d");
+    }
 
-			function plotRect(context, x, y, width, height, style){
-				context.fillStyle = style;
-				context.fillRect(x,y,width,height);
-			}
+    function newsection() {
+        var noda = BuildRhythm(4, PATTERNS, 10, 4);
+        showNode(noda, 20, 20, 1000, 100);
+        dispnodes.push(noda);
+    }
 
-			function showNode( node, x, y, width, height ){
-				plotRect(leContext, x, y, width, height, "red" ); // baseplate
-				
-			}
+    function getStyle(node, level) {
+    	//level = level || 0;
+        if (node.value instanceof Array) {
+        	if(!level){
+        		return "cyan";
+        	}
+        }
+        if(!level){
+        	return "red";
+    	}
+    	return "white";
+    }
 
-			function loadCanvas(){
-				leCanvas	= document.getElementById(canvasID);
-				leContext	= leCanvas.getContext("2d");
-			}
+    </script>
+</head>
+<div class=centered>
+    <button onclick="newsection()">New Section</button>
+    <hr>
 
-			function newsection(){
-				var noda = BuildRhythm(4, PATTERNS, 10, 4);
-				showNode(noda, 20, 20, 1000, 100);
-				haha = noda;
-			}
+    <body onload="loadCanvas()">
+        <canvas id="drawspace" width="1200" height="720" style="border: 1px solid black"></canvas>
+    </body>
+</div>
 
-		</script>
-	</head>
-	<div class=centered>
-		<button onclick="newsection()">New Section</button>
-		<hr>
-		<body onload="loadCanvas()">
-			<canvas id="drawspace" width="1200" height="720" style="border: 1px solid black" onmouseover="showInfo('canvas');" onmouseout="showInfo();"></canvas>
-		</body>
-	</div>
 </html>

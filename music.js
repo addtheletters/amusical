@@ -106,6 +106,8 @@ var PATTERNS = [
 ];
 
 function BuildRhythm( BPM, patterns, minBeatDuration, complexity ){
+	// need to implement minBeatDuration
+	// and also just make this less dumb in every way
 	var root = new MusicNode( BPM );
 	root.FillByPattern(patterns.randomChoice());
 	for(var i = 0; i < complexity; i++){
