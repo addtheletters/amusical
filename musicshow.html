@@ -1,0 +1,58 @@
+<html>
+	<head>
+		<title>Canvas?</title>
+		<style type="text/css">
+			body{
+				font-family:monospace;
+				font-size: 13px;
+			}
+			.centered{
+				position: relative;
+				max-width: 1400px;
+			    height: auto;
+			    margin: auto;
+			    padding: 10px;
+			    text-align: center;
+			}
+		</style>
+		<script src="music.js"> // music node stuff </script>
+		<script src="colors.js"> // color functions </script>
+		<script type="text/javascript">
+
+			var canvasID = "drawspace";
+			var leCanvas;
+			var leContext;
+
+			var haha;
+
+			function plotRect(context, x, y, width, height, style){
+				context.fillStyle = style;
+				context.fillRect(x,y,width,height);
+			}
+
+			function showNode( node, x, y, width, height ){
+				plotRect(leContext, x, y, width, height, "red" ); // baseplate
+				
+			}
+
+			function loadCanvas(){
+				leCanvas	= document.getElementById(canvasID);
+				leContext	= leCanvas.getContext("2d");
+			}
+
+			function newsection(){
+				var noda = BuildRhythm(4, PATTERNS, 10, 4);
+				showNode(noda, 20, 20, 1000, 100);
+				haha = noda;
+			}
+
+		</script>
+	</head>
+	<div class=centered>
+		<button onclick="newsection()">New Section</button>
+		<hr>
+		<body onload="loadCanvas()">
+			<canvas id="drawspace" width="1200" height="720" style="border: 1px solid black" onmouseover="showInfo('canvas');" onmouseout="showInfo();"></canvas>
+		</body>
+	</div>
+</html>
