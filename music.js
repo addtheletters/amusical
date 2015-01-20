@@ -6,8 +6,10 @@ var Note = function( index ){
 		//return "[Note: num(" + this.num + "), dur(" + this.duration + ")]";
 	//}
 
-function MusicNode( duration, value ){
-	this.duration = duration;
+function MusicNode( duration, value, parent ){
+	this.duration = duration || null;
+	this.parent = parent || null;
+	this.sequence = [];
 	if( !value ){
 		console.log("MusicNode: value not given, initializing without value");
 	}
@@ -15,12 +17,17 @@ function MusicNode( duration, value ){
 		this.value = value;
 		if(this.value instanceof Note){
 			console.log("MusicNode: value is a note");
+			this.sequence.push(this);
 		}
 		else if( this.value instanceof Array ){
 			console.log("MusicNode: value is an array");
+			this.reSequence();
 		}
 	}
 }
+
+	// effect functions won't work like this
+	// are placeholder
 	MusicNode.prototype.effect = function(){
 		// play sound
 		if(this.value instanceof Note){
@@ -32,56 +39,115 @@ function MusicNode( duration, value ){
 			}
 		}
 	}
+	MusicNode.prototype.sequentialEffect = function(){
+		for(var i = 0; i < this.sequence.length; i++){
+			this.sequence[i].effect();
+		}
+	}
+
+
 	MusicNode.prototype.getDuration = function(){
 		return this.duration;
 	}
 	MusicNode.prototype.setDuration = function(duration){
 		this.duration = duration;
 	}
-	MusicNode.prototype.getInternalDuration = function(){
+
+	/*
+	*	useSequence argument is for when this.sequence has been filled in
+	*	for faster execution of certain functions
+	*/
+	MusicNode.prototype.getInternalDuration = function(useSequence){
 		if(this.value instanceof Array){
-			var temp = 0;
+			/*var temp = 0;
 			for(var i = 0; i < this.value.length; i++){
 				temp += this.value[i].getDuration();
 			}
-			return temp;
+			return temp;*/
+			var useArray;
+			if(useSequence){
+				useArray = this.sequence;
+			}
+			else{
+				useArray = this.value;
+			}
+			return useArray.sum(function(node){
+				return node.getDuration();
+			});
 		}
 		else if(this.value instanceof Note){
 			return this.getDuration();
 		}
 		else{
-			console.log("MusicNode internal duration unavailable, returning 0.");
+			console.log("MusicNode (getInternalDuration) internal duration unavailable, returning 0.");
 			return 0;//this.getDuration();
 		}
 	}
-	MusicNode.prototype.addInnerNode = function( node ){
+
+	/*
+	*	dNSeq = do not sequence, stopping the node push from updating sequences of
+	*	all parents up the tree
+	*/
+	MusicNode.prototype.addInnerNode = function( node, dNSeq ){
 		if(!this.value){
 			this.value = [];
 		}
 		if(this.value instanceof Array){
+			node.parent = this;
 			this.value.push(node);
+			if(!dNSeq){
+				this.reSequence(); //node);
+			}
+			else{
+				console.log("MusicNode (addInnerNode): skipped resequencing.");
+			}
 		}
 		else{
-			console.log("MusicNode value is not array.");
+			console.log("MusicNode (addInnerNode): value is not array.");
 		}
 	}
-	MusicNode.prototype.getRemainingSpace = function(){
-		return this.duration - this.getInternalDuration();
+
+	/*
+	*	recursive helper, should never be called directly
+	*/
+	MusicNode.prototype.reSequence = function(){
+		// this function is supposed to receive the node that was changed 
+		// as an argument and then surgically alter the sequences of parents
+		// until all are fixed.
+
+		//this.sequence = this.sequence.concat(node.getSLList());
+
+		// haha lol kludge fix. very slow and inefficient, will fix later
+		// if it becomes an issue
+
+		this.sequence = this.getSLList();
+		if(this.parent){
+			this.parent.reSequence(this);
+		}
 	}
-	MusicNode.prototype.FillEvenly = function(numBeats){
-		return FillEvenly(this, numBeats);
+
+	MusicNode.prototype.getRemainingSpace = function( useSequence ){
+		return this.duration - this.getInternalDuration( useSequence );
 	}
-	MusicNode.prototype.FillByPattern = function(pattern){
-		return FillByPattern(this, pattern);
+	MusicNode.prototype.FillEvenly = function(numBeats, noReSeq){
+		return FillEvenly(this, numBeats, noReSeq);
 	}
-	MusicNode.prototype.getSequentialLeafList =  function(){
+	MusicNode.prototype.FillByPattern = function(pattern, noReSeq){
+		return FillByPattern(this, pattern, noReSeq);
+	}
+
+	/*
+	* 	SLList = Sequential Leaf List
+	*	use to build this.sequence when it does not yet exist
+	*/
+	MusicNode.prototype.getSLList = function(){
 		var leaves = [];
 		var stack = [this];
 		while(stack.length > 0){
 			var node = stack.pop();
 			if(!(node.value instanceof Array)){
 				if(!(node.value instanceof Note)){
-					console.log("MusicNode: Tried to get leaves / as leaf an unset node.");
+					console.log("MusicNode (getSLList): Tried to get leaves / as leaf an unset node.");
 				}
 				leaves.push(node);
 				continue;
@@ -125,14 +191,15 @@ function BuildRhythm( BPM, patterns, minBeatDuration, complexity ){
 	// need to implement minBeatDuration
 	// and also just make this less dumb in every way
 	var root = new MusicNode( BPM );
-	root.FillByPattern(patterns.randomChoice());
+	root.FillByPattern(patterns.randomChoice(), true);
 	for(var i = 0; i < complexity; i++){
-		var tempnode = root.value.randomChoice().FillByPattern(patterns.randomChoice());
+		var tempnode = root.value.randomChoice().FillByPattern(patterns.randomChoice(), true);
 	}
+	root.reSequence();
 	return root;
 }
 
-function FillEvenly( node, numBeats ){
+function FillEvenly( node, numBeats, noReSeq ){
 	var space = node.getRemainingSpace();
 	if(space <= 0){
 		console.log("fill: no space in node, no action taken");
@@ -143,12 +210,12 @@ function FillEvenly( node, numBeats ){
 	}
 	var beatlen = space / numBeats;
 	for(var i = 0; i < numBeats; i++){
-		node.addInnerNode( new MusicNode( beatlen ) );
+		node.addInnerNode( new MusicNode( beatlen ), noReSeq );
 	}
 	return node;
 }
 
-function FillByPattern(node, pattern){
+function FillByPattern( node, pattern, noReSeq ){
 	var space = node.getRemainingSpace();
 	if(space <= 0){
 		console.log("fill: no space in node, no action taken");
@@ -159,13 +226,12 @@ function FillByPattern(node, pattern){
 	}
 	var patternTotal = pattern.sum();
 	for(var i = 0; i < pattern.length; i++){
-		node.addInnerNode( new MusicNode( (pattern[i] / patternTotal) * space ) );
+		node.addInnerNode( new MusicNode( (pattern[i] / patternTotal) * space ), noReSeq );
 	}
 	return node;
 }
 
-String.prototype.repeat = function( num )
-{
+String.prototype.repeat = function( num ){
 	if(num <= 0){
 		return "";
 	}
@@ -173,11 +239,14 @@ String.prototype.repeat = function( num )
 }
 
 
-Array.prototype.sum = function(){
+Array.prototype.sum = function( valueFunc ){
+	valueFunc = valueFunc || function( item ){
+		return item;
+	};
 	var total = 0;
 	for(var i=0,n=this.length; i<n; ++i)
 	{
-	    total += this[i];
+	    total += valueFunc(this[i]);
 	}
 	return total;
 }
@@ -185,6 +254,10 @@ Array.prototype.sum = function(){
 Array.prototype.randomChoice = function(){
 	return this[Math.floor( Math.random() * this.length )];
 }
+
+Array.prototype.injectArray = function( index, arr ) {
+    return this.slice( 0, index ).concat( arr ).concat( this.slice( index ) );
+};
 
 
 //var bob = BuildBob( 4, 1/4 );

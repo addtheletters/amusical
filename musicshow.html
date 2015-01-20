@@ -29,6 +29,7 @@
     var leContext;
 
     var dispnodes = [];
+    var lastshown;
 
     function plotRect(context, x, y, width, height, fillStyle, strokeStyle, lineWidth) {
         if (fillStyle) {
@@ -98,6 +99,7 @@
         var noda = BuildRhythm(4, PATTERNS, 10, 4);
         showNode(noda, 20, 20, 1000, 100);
         dispnodes.push(noda);
+        lastshown = noda;
     }
 
     function getStyle(node, level) {
