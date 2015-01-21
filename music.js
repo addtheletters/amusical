@@ -2,6 +2,13 @@
 var Note = function( index ){
 	this.num = index;
 };
+
+function Group( id, notes ){
+	this.id = id;
+	this.notes = notes;
+}
+
+
 	//Note.prototype.toString = function(){
 		//return "[Note: num(" + this.num + "), dur(" + this.duration + ")]";
 	//}
