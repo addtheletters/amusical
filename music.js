@@ -39,6 +39,7 @@ function MusicNode( duration, value, parent ){
 			}
 		}
 	}
+
 	MusicNode.prototype.sequentialEffect = function(){
 		for(var i = 0; i < this.sequence.length; i++){
 			this.sequence[i].effect();
@@ -141,6 +142,7 @@ function MusicNode( duration, value, parent ){
 	*	use to build this.sequence when it does not yet exist
 	*/
 	MusicNode.prototype.getSLList = function(){
+		console.log("MusicNode (getSLList): running BFS for leaves");
 		var leaves = [];
 		var stack = [this];
 		while(stack.length > 0){
@@ -177,12 +179,19 @@ function BuildBob( BPM, beatVal ){
 	return root;
 }
 
+function nodeLevelObj(node, level){
+    return {
+        'node':node,
+        'level':level
+        };
+}
+
 
 var PATTERNS = [
 	[1, 1, 1],
 	[1, 1],
-	//[2, 1],
-	//[1, 2],
+	[2, 1],
+	[1, 2],
 	//[3, 1],
 	//[1, 3], 
 ];
@@ -229,6 +238,10 @@ function FillByPattern( node, pattern, noReSeq ){
 		node.addInnerNode( new MusicNode( (pattern[i] / patternTotal) * space ), noReSeq );
 	}
 	return node;
+}
+
+function Tonalize( node ){
+	// fill with tones
 }
 
 String.prototype.repeat = function( num ){

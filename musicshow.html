@@ -1,7 +1,16 @@
 <html>
 
 <head>
-    <title>a muse; amusing; a-musical.</title>
+
+    <!--
+    <?php
+    $titles = ["a muse", "amusing", "a-musical"];
+    $title = array_rand($titles);
+    echo "<title>".$title."</title>";
+    ?>
+    -->
+    <title>a muse;amusing;a-musical.</title>
+
     <style type="text/css">
     body {
         font-family: monospace;
@@ -55,7 +64,7 @@
 
     function showNode(node, x, y, width, height, yshrink) {
     	yshrink = yshrink || 10;
-    	console.log("plotting node (recursive)");
+    	console.log("showNode: plotting node (recursive)");
         plotRect(leContext, x, y, width, height, getStyle(node), "black", 1); // baseplate
         if( node.value instanceof Array ){
 			console.log("showNode: node value is an array");
@@ -67,28 +76,41 @@
 				lastStartPos += subwidth;
 			}
 		}
+        return true;
     }
 
-    function showNodeIter(){
+    /*
+
+    function showNode_Iter(root, x, y, width, height, yshrink){
         // unfinished
+        /*
+        var dispHelper = {};
         yshrink = yshrink || 10;
-        console.log("plotting node (iterative)");
-        var queue = [this];
+        console.log("showNode: plotting node (iterative)");
+        var queue = [nodeLevelObj(root, 0)];
         while(queue.length > 0){
-            var node = queue.dequeue();
-            if(!(node.value instanceof Array)){
-                //show
-                plotRect(leContext, x, y, width, height, getStyle(node), "black", 1);
+            var nodeObj = queue.shift();
+            console.log("showNode: examining node at level " + nodeObj.level);
+            console.log(nodeObj);
+            if(!dispHelper[nodeObj.level]){
+                dispHelper[nodeObj.level] = [];
+            }
+            dispHelper[nodeObj.level].push(nodeObj.node);
+            if(!(nodeObj.node.value instanceof Array)){
+                //plotRect(leContext, x, y, width, height, getStyle(nodeObj.node, nodeObj.level), "black", 1);
                 continue;
             }
-            for(var i = 0; i < node.value.length; i++){
-                queue.push(node.value[i]);
+            // else...
+            for(var i = 0; i < nodeObj.node.value.length; i++){
+                queue.push(nodeLevelObj(nodeObj.node.value[i], nodeObj.level+1));
             }
-            //show
-            plotRect(leContext, x, y, width, height, getStyle(node), "black", 1);
+            //plotRect(leContext, x, y, width, height, getStyle(nodeObj.node, nodeObj.level), "black", 1);
         }
-        return;
-    }
+        return dispHelper;
+
+        // assuming I already did everything with reSequence
+    }*/
+
 
     function loadCanvas() {
         leCanvas = document.getElementById(canvasID);
@@ -117,13 +139,12 @@
 
     </script>
 </head>
-<div class=centered>
-    <button onclick="newsection()">New Section</button>
-    <hr>
-
-    <body onload="loadCanvas()">
-        <canvas id="drawspace" width="1200" height="720" style="border: 1px solid black"></canvas>
-    </body>
-</div>
-
+<body onload="loadCanvas()">
+    <div class=centered>
+        <button onclick="newsection()">New Section</button>
+        <hr>
+            <canvas id="drawspace" width="1200" height="720" style="border: 1px solid black"></canvas>
+        
+    </div>
+</body>
 </html>
