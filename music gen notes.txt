@@ -1,4 +1,7 @@
 
+cellular automata
+wolfram music
+
 two structures:
 first pass: rhythm. create all nodes
 second pass: melody. fill in tones.

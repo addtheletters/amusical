@@ -215,6 +215,10 @@ function BuildRhythm( BPM, patterns, minBeatDuration, complexity ){
 	return root;
 }
 
+function MutateRhythm( rhythm ){
+	// make less regular!
+}
+
 function FillEvenly( node, numBeats, noReSeq ){
 	var space = node.getRemainingSpace();
 	if(space <= 0){
