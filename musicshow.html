@@ -68,10 +68,10 @@
 
     function plotText(text, context, x, y, maxWidth, font, fillStyle, strokeStyle){
     	context.font = font;
-        context.strokeStyle = strokeStyle;
     	context.fillStyle = fillStyle;
-        context.strokeText(text, x, y, maxWidth);
+        context.strokeStyle = strokeStyle;
     	context.fillText(text, x, y, maxWidth);
+        context.strokeText(text, x, y, maxWidth);
     }
 
     function showNode(node, x, y, width, height, yshrink, childfunction) {

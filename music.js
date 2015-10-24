@@ -21,6 +21,7 @@ var Note = function( index ){
 		return "[Note: num(" + this.num + ")]";// dur(" + this.duration + ")]";
 	}
 
+
 /*
 function Group( id, notes ){
 	this.id = id;
