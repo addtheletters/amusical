@@ -44,6 +44,11 @@
     
     var BASEPLATE_STYLE = "gray";
     var DEFAULT_STYLE = "white";
+    var DEFAULT_TEXT_WIDTH = 100;
+    var FONT_SIZE = 30;
+    var DEFAULT_FONT = FONT_SIZE + "px Helvetica";
+    var DEFAULT_TEXT_FILL = "white";
+    var DEFAULT_TEXT_STROKE = "black";
 
     function plotRect(context, x, y, width, height, fillStyle, strokeStyle, lineWidth) {
         if (fillStyle) {
@@ -61,9 +66,11 @@
         }
     }
 
-    function plotText(text, context, x, y, maxWidth, font, fillStyle){
+    function plotText(text, context, x, y, maxWidth, font, fillStyle, strokeStyle){
     	context.font = font;
+        context.strokeStyle = strokeStyle;
     	context.fillStyle = fillStyle;
+        context.strokeText(text, x, y, maxWidth);
     	context.fillText(text, x, y, maxWidth);
     }
 
@@ -81,6 +88,10 @@
 				lastStartPos += subwidth;
 			}
 		}
+        else if(node.value instanceof Note){
+            plotText(node.value.num, leContext, x + 3, y + yshrink, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
+            plotText(note_association[node.value.num], leContext, x + 3, y + yshrink + FONT_SIZE, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
+        }
         return true;
     }
     
@@ -129,7 +140,7 @@
     }
 
     function newsection() {
-        var noda = BuildRhythm(4, PATTERNS, 10, 7);
+        var noda = BuildRhythm(4, PATTERNS, 10, 4);
         Tonalize(noda);
         showNode(noda, 20, 20, 1000, 250, 20);
         dispnodes.push(noda);
