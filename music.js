@@ -2,16 +2,17 @@
 var Note = function( index ){
 	this.num = index;
 };
+	Note.prototype.toString = function(){
+		return "[Note: num(" + this.num + ")]";// dur(" + this.duration + ")]";
+	}
 
+/*
 function Group( id, notes ){
 	this.id = id;
 	this.notes = notes;
 }
+*/
 
-
-	//Note.prototype.toString = function(){
-		//return "[Note: num(" + this.num + "), dur(" + this.duration + ")]";
-	//}
 
 function MusicNode( duration, value, parent ){
 	this.duration = duration || null;
@@ -57,10 +58,13 @@ function MusicNode( duration, value, parent ){
 	MusicNode.prototype.getDuration = function(){
 		return this.duration;
 	}
+	
+	// why did I have this function? it seems like it would be a terrible idea.
+	/*
 	MusicNode.prototype.setDuration = function(duration){
 		this.duration = duration;
 	}
-
+	*/
 	/*
 	*	useSequence argument is for when this.sequence has been filled in
 	*	for faster execution of certain functions
@@ -128,7 +132,7 @@ function MusicNode( duration, value, parent ){
 		// haha lol kludge fix. very slow and inefficient, will fix later
 		// if it becomes an issue
 
-		this.sequence = this.getSLList();
+		this.sequence	= this.getSLList();
 		if(this.parent){
 			this.parent.reSequence(this);
 		}
@@ -205,18 +209,35 @@ var PATTERNS = [
 
 function BuildRhythm( BPM, patterns, minBeatDuration, complexity ){
 	// need to implement minBeatDuration
-	// and also just make this less dumb in every way
+	// and also just make this less dumb in several ways
 	var root = new MusicNode( BPM );
+	for(var i = 0; i < complexity; i++){
+		MutateRhythm(root, patterns);
+	}
+	/*
 	root.FillByPattern(patterns.randomChoice(), true);
 	for(var i = 0; i < complexity; i++){
 		var tempnode = root.value.randomChoice().FillByPattern(patterns.randomChoice(), true);
 	}
+	*/
 	root.reSequence();
 	return root;
 }
 
-function MutateRhythm( rhythm ){
+function MutateRhythm( rhythm, patterns ){
 	// make less regular!
+	if( rhythm.value instanceof Array ){
+		MutateRhythm( rhythm.value.randomChoice(), patterns );
+	}
+	else{
+		ClearNode(rhythm);
+		rhythm.FillByPattern( patterns.randomChoice(), true);
+	}
+}
+
+function ClearNode( node ){
+	node.value = undefined;
+	node.reSequence();
 }
 
 function FillEvenly( node, numBeats, noReSeq ){
@@ -253,6 +274,15 @@ function FillByPattern( node, pattern, noReSeq ){
 
 function Tonalize( node ){
 	// fill with tones
+	if(node.sequence.length > 0){
+		console.debug("node is tonalizable");
+		for(var i = 0; i < node.sequence.length; i++){
+			node.sequence[i].value = new Note(Math.floor(Math.random() * 12));
+		}
+	}
+	else{
+		console.debug("node is nontonalizable");
+	}
 }
 
 String.prototype.repeat = function( num ){

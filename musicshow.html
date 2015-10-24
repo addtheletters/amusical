@@ -39,6 +39,11 @@
 
     var dispnodes = [];
     var lastshown;
+    
+    var colors = getColorsLib();
+    
+    var BASEPLATE_STYLE = "gray";
+    var DEFAULT_STYLE = "white";
 
     function plotRect(context, x, y, width, height, fillStyle, strokeStyle, lineWidth) {
         if (fillStyle) {
@@ -62,7 +67,7 @@
     	context.fillText(text, x, y, maxWidth);
     }
 
-    function showNode(node, x, y, width, height, yshrink) {
+    function showNode(node, x, y, width, height, yshrink, childfunction) {
     	yshrink = yshrink || 10;
     	console.log("showNode: plotting node (recursive)");
         plotRect(leContext, x, y, width, height, getStyle(node), "black", 1); // baseplate
@@ -72,15 +77,21 @@
 			for(var i = 0; i < node.value.length; i++){
 				var subdur = node.value[i].getDuration();
 				var subwidth = width * subdur / node.getDuration();
-				showNode(node.value[i], x + lastStartPos, y+yshrink, subwidth, height-2*yshrink);
+				showNode(node.value[i], x + lastStartPos, y+yshrink, subwidth, height-1*yshrink, yshrink, childfunction);
 				lastStartPos += subwidth;
 			}
 		}
         return true;
     }
+    
+    /*
+    function sell_drinks(){
+        console.log("HI");
+    }
+    */
 
     /*
-
+ 
     function showNode_Iter(root, x, y, width, height, yshrink){
         // unfinished
         /*
@@ -118,23 +129,28 @@
     }
 
     function newsection() {
-        var noda = BuildRhythm(4, PATTERNS, 10, 4);
-        showNode(noda, 20, 20, 1000, 100);
+        var noda = BuildRhythm(4, PATTERNS, 10, 7);
+        Tonalize(noda);
+        showNode(noda, 20, 20, 1000, 250, 20);
         dispnodes.push(noda);
         lastshown = noda;
     }
 
-    function getStyle(node, level) {
+    function getStyle(node, level) {        
+        var TEMP_GLOBAL_NUM_TONES = 12;
     	//level = level || 0;
-        if (node.value instanceof Array) {
+        console.debug("getStyle debug");
+        console.debug(node);
+        if (node.value instanceof Note) {
+            console.debug("note " + node.value)
+            return colors.getStyleFromRGB(colors.HSVtoRGB( (node.value.num % TEMP_GLOBAL_NUM_TONES) / TEMP_GLOBAL_NUM_TONES, 1, 1));
+        }
+        else if (node.value instanceof Array) {
         	if(!level){
-        		return "cyan";
+        		return BASEPLATE_STYLE;
         	}
         }
-        if(!level){
-        	return "red";
-    	}
-    	return "white";
+    	return DEFAULT_STYLE;
     }
 
     </script>
