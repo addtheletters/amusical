@@ -76,10 +76,10 @@
 
     function showNode(node, x, y, width, height, yshrink, childfunction) {
     	yshrink = yshrink || 10;
-    	console.log("showNode: plotting node (recursive)");
+    	//console.log("showNode: plotting node (recursive)");
         plotRect(leContext, x, y, width, height, getStyle(node), "black", 1); // baseplate
         if( node.value instanceof Array ){
-			console.log("showNode: node value is an array");
+			//console.log("showNode: node value is an array");
 			var lastStartPos = 0;
 			for(var i = 0; i < node.value.length; i++){
 				var subdur = node.value[i].getDuration();
@@ -102,6 +102,14 @@
     */
 
     /*
+ 
+    
+    function nodeLevelObj(node, level){
+        return {
+            'node':node,
+            'level':level
+            };
+    }
  
     function showNode_Iter(root, x, y, width, height, yshrink){
         // unfinished
@@ -139,7 +147,7 @@
         leContext = leCanvas.getContext("2d");
     }
 
-    function newsection() {
+    function newSection() {
         var noda = BuildRhythm(4, PATTERNS, 10, 4);
         Tonalize(noda);
         showNode(noda, 20, 20, 1000, 250, 20);
@@ -176,7 +184,7 @@
 </head>
 <body onload="loadCanvas()">
     <div class=centered>
-        <button onclick="newsection()">New Section</button>
+        <button onclick="newSection()">New Section</button>
         <hr>
             <canvas id="drawspace" width="1200" height="720" style="border: 1px solid black"></canvas>
         

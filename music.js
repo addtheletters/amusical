@@ -1,4 +1,5 @@
 
+
 /*
 var note_association = {
 	0:"C", // middle C. SPN is C4
@@ -25,6 +26,38 @@ function getNoteOrder(){
     return note_order;
 }
 
+var letter_vals = {
+    "C":0,
+    "D":2,
+    "E":4,
+    "F":5,
+    "G":7,
+    "A":9,
+    "B":11
+};
+
+var accidental_vals = {
+    "#":1, // easier to type
+    "b":-1,
+    "♯":1, // actual character
+    "♭":-1,
+    "♮":0 // for completeness
+};
+
+function ParseLetter( letr ){
+    if(letr.length < 1){
+        console.log("unable to parse letter notation");
+        return;
+    }
+    var base = letr[0];
+    var accd = letr.slice(1);
+    // supports multiple stacking accidentals
+    var modifier = accd.split("").sum(function( acc ){
+        return accidental_vals[acc] || 0;
+    });
+    return letter_vals[base] + modifier;
+}
+
 function mod(a, b){
     return ((a % b) + b) % b;
 }
@@ -40,6 +73,7 @@ var Note = function( index ){
     Note.prototype.toSPN = function(){
         return new SPN().fromNum(this.num);
     };
+    
 
 function SPN( letr, octv ){
     /** includes accidental */
@@ -48,7 +82,7 @@ function SPN( letr, octv ){
     this.octave = octv || 4;  
 };
     SPN.prototype.toNum = function(){
-        return NUM_TONES * (octv - DEFAULT_OCTAVE) + getNoteOrder().indexOf(this.letter); // assumes 0 is middle-C
+        return NUM_TONES * (this.octave - DEFAULT_OCTAVE) + ParseLetter(this.letter); // assumes 0 is middle-C
     };
     
     SPN.prototype.fromNum = function( num ){
@@ -66,16 +100,16 @@ function MusicNode( duration, value, parent ){
 	this.parent = parent || null;
 	this.sequence = [];
 	if( !value ){
-		console.log("MusicNode: value not given, initializing without value");
+		//console.log("MusicNode: value not given, initializing without value");
 	}
 	else{
 		this.value = value;
 		if(this.value instanceof Note){
-			console.log("MusicNode: value is a note");
+			//console.log("MusicNode: value is a note");
 			this.sequence.push(this);
 		}
 		else if( this.value instanceof Array ){
-			console.log("MusicNode: value is an array");
+			//console.log("MusicNode: value is an array");
 			this.reSequence();
 		}
 	}
@@ -200,7 +234,7 @@ function MusicNode( duration, value, parent ){
 	*	use to build this.sequence when it does not yet exist
 	*/
 	MusicNode.prototype.getSLList = function(){
-		console.log("MusicNode (getSLList): running BFS for leaves");
+		//console.log("MusicNode (getSLList): running BFS for leaves");
 		var leaves = [];
 		var stack = [this];
 		while(stack.length > 0){
@@ -237,16 +271,9 @@ function BuildBob( BPM, beatVal ){
 	return root;
 }
 
-function nodeLevelObj(node, level){
-    return {
-        'node':node,
-        'level':level
-        };
-}
-
 
 var PATTERNS = [
-	[1, 1, 1],
+	[1, 1, 1], // this one shouldn't even be necessary
 	[1, 1],
 	[2, 1],
 	[1, 2],
@@ -322,7 +349,7 @@ function FillByPattern( node, pattern, noReSeq ){
 function Tonalize( node ){
 	// fill with tones
 	if(node.sequence.length > 0){
-		console.debug("node is tonalizable");
+		//console.debug("node is tonalizable");
 		for(var i = 0; i < node.sequence.length; i++){
 			node.sequence[i].value = new Note(Math.floor(Math.random() * 48) - 24);
 		}
