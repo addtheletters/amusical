@@ -1,5 +1,5 @@
 
-var NUM_NOTES = 11;
+var NUM_NOTES = 12;
 var DEFAULT_OCTAVE = 4;
 
 /*
@@ -25,11 +25,15 @@ function getNoteOrder(){
     return note_order;
 }
 
+function mod(a, b){
+    return ((a % b) + b) % b;
+}
+
 var Note = function( index ){
 	this.num = index;
 };
 	Note.prototype.toString = function(){
-		return "[Note: num(" + this.num + ")]";// dur(" + this.duration + ")]";
+		return "[Note: num(" + this.num + "), SPN("+ this.toSPN() +")]";// dur(" + this.duration + ")]";
 	};
     
     /** scientific pitch notation: https://en.wikipedia.org/wiki/Scientific_pitch_notation */
@@ -44,13 +48,18 @@ function SPN( letr, octv ){
     this.octave = octv || 4;  
 };
     SPN.prototype.toNum = function(){
-        return NUM_NOTES * (octv - DEFAULT_OCTAVE) + getNoteOrder.indexOf(this.letter); // assumes 0 is middle-C
+        return NUM_NOTES * (octv - DEFAULT_OCTAVE) + getNoteOrder().indexOf(this.letter); // assumes 0 is middle-C
     };
     
     SPN.prototype.fromNum = function( num ){
-        this.letter = num % NUM_NOTES;
-        this.octave = Math.floor(num + (NUM_NOTES*DEFAULT_OCTAVE) / NUM_NOTES);
+        this.letter = getNoteOrder()[ mod(num, NUM_NOTES) ];
+        this.octave = Math.floor( num / NUM_NOTES ) + DEFAULT_OCTAVE;
+        return this;
     };
+    
+    SPN.prototype.toString = function(){
+        return this.letter + this.octave;
+    }
 
 function MusicNode( duration, value, parent ){
 	this.duration = duration || null;

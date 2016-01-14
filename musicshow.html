@@ -154,7 +154,7 @@
         console.debug(node);
         if (node.value instanceof Note) {
             console.debug("note " + node.value)
-            return colors.getStyleFromRGB(colors.HSVtoRGB( (node.value.num % TEMP_GLOBAL_NUM_TONES) / TEMP_GLOBAL_NUM_TONES, 1, 1));
+            return colors.getStyleFromRGB(colors.HSVtoRGB( mod(node.value.num, TEMP_GLOBAL_NUM_TONES) / TEMP_GLOBAL_NUM_TONES, 1, 1));
         }
         else if (node.value instanceof Array) {
         	if(!level){

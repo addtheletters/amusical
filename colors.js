@@ -59,7 +59,7 @@ colors.componentToHex = function ( c ) {
 }
 
 colors.rgbToHex = function( r, g, b ) {
-    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+    return "#" + this.componentToHex(r) + this.componentToHex(g) + this.componentToHex(b);
 }
 
 colors.rgbToHex_fast = function( r, g, b ){
