@@ -62,8 +62,13 @@ function mod(a, b){
     return ((a % b) + b) % b;
 }
 
-var Note = function( index ){
-	this.num = index;
+var Note = function( arg ){
+    if( typeof arg === 'string' ){
+        this.fromSPN(new SPN().fromString(arg));
+    }
+    else{
+        this.num = arg;
+    }
 };
 	Note.prototype.toString = function(){
 		return "[Note: num(" + this.num + "), SPN("+ this.toSPN() +")]";// dur(" + this.duration + ")]";
@@ -72,6 +77,10 @@ var Note = function( index ){
     /** scientific pitch notation: https://en.wikipedia.org/wiki/Scientific_pitch_notation */
     Note.prototype.toSPN = function(){
         return new SPN().fromNum(this.num);
+    };
+    
+    Note.prototype.fromSPN = function( spn ){
+        this.num = spn.toNum();
     };
     
 
@@ -93,7 +102,14 @@ function SPN( letr, octv ){
     
     SPN.prototype.toString = function(){
         return this.letter + this.octave;
-    }
+    };
+    
+    SPN.prototype.fromString = function( stra ){
+        var pivot = stra.search(/\d+/g, "")
+        this.letter = stra.slice(0, pivot);
+        this.octave = parseInt( stra.slice(pivot) );
+        return this;
+    };
 
 function MusicNode( duration, value, parent ){
 	this.duration = duration || null;
