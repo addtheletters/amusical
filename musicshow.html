@@ -90,7 +90,7 @@
 		}
         else if(node.value instanceof Note){
             plotText(node.value.num, leContext, x + 3, y + yshrink, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
-            plotText(note_association[node.value.num], leContext, x + 3, y + yshrink + FONT_SIZE, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
+            plotText(getNoteOrder()[node.value.num], leContext, x + 3, y + yshrink + FONT_SIZE, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
         }
         return true;
     }
