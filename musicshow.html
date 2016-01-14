@@ -157,8 +157,6 @@
 
     function getStyle(node, level) {
     	//level = level || 0;
-        console.debug("getStyle debug");
-        console.debug(node);
         if (node.value instanceof Note) {
             return colors.getStyleFromRGB(colors.HSVtoRGB(getIndicHSV(node.value)));
         }

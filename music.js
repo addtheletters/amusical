@@ -66,8 +66,12 @@ var Note = function( arg ){
     if( typeof arg === 'string' ){
         this.fromSPN(new SPN().fromString(arg));
     }
-    else{
+    else if( typeof arg === 'number'){
         this.num = arg;
+    }
+    else{
+        console.log("note initialized to default middle-C");
+        this.num = 0;
     }
 };
 	Note.prototype.toString = function(){
@@ -188,7 +192,7 @@ function MusicNode( duration, value, parent ){
 			return this.getDuration();
 		}
 		else{
-			console.log("MusicNode (getInternalDuration) internal duration unavailable, returning 0.");
+			//console.log("MusicNode (getInternalDuration) internal duration unavailable, returning 0.");
 			return 0;//this.getDuration();
 		}
 	}
@@ -208,11 +212,11 @@ function MusicNode( duration, value, parent ){
 				this.reSequence(); //node);
 			}
 			else{
-				console.log("MusicNode (addInnerNode): skipped resequencing.");
+				//console.log("MusicNode (addInnerNode): skipped resequencing.");
 			}
 		}
 		else{
-			console.log("MusicNode (addInnerNode): value is not array.");
+			//console.log("MusicNode (addInnerNode): value is not array.");
 		}
 	}
 
@@ -257,7 +261,7 @@ function MusicNode( duration, value, parent ){
 			var node = stack.pop();
 			if(!(node.value instanceof Array)){
 				if(!(node.value instanceof Note)){
-					console.log("MusicNode (getSLList): Tried to get leaves / as leaf an unset node.");
+					//console.log("MusicNode (getSLList): Tried to get leaves / as leaf an unset node.");
 				}
 				leaves.push(node);
 				continue;
