@@ -70,7 +70,9 @@ var Note = function( arg ){
         this.num = arg;
     }
     else{
-        console.log("note initialized to default middle-C");
+        console.debug("note initialized to default middle-C");
+        //console.log("arg was")
+        //console.log(arg)
         this.num = 0;
     }
 };
@@ -114,6 +116,25 @@ function SPN( letr, octv ){
         this.octave = parseInt( stra.slice(pivot) );
         return this;
     };
+    
+// time for scales and stuff
+// 
+var scales = [ // fun fact: diatonic can mean a lot of things in different contexts
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], // chromatic (all 12 tones)
+    [0, 2, 4, 5, 7, 9, 11], // diatonic C major
+    [7, 9, 11, 0, 2, 4, 6], // diatonic G major
+    [0, 2, 4, 7, 9] // pentatonic major from C 
+];
+
+function NumberizeScale(scale){
+    var cpy = scale.slice();
+    for( var i = 0; i < cpy.length; i++ ){
+        if( typeof scale[i] === 'string' ){
+            cpy[i] = ParseLetter(scale[i]);
+        }
+    }
+    return cpy;
+}
 
 function MusicNode( duration, value, parent ){
 	this.duration = duration || null;
@@ -366,12 +387,15 @@ function FillByPattern( node, pattern, noReSeq ){
 	return node;
 }
 
-function Tonalize( node ){
+function Tonalize( node, scale ){
+    var tmp_octave_range = 4;
 	// fill with tones
 	if(node.sequence.length > 0){
 		//console.debug("node is tonalizable");
 		for(var i = 0; i < node.sequence.length; i++){
-			node.sequence[i].value = new Note(Math.floor(Math.random() * 48) - 24);
+            // TODO: this doesn't do multioctaves anymore with the scales (because of the moduluo)
+            var ind = mod( (Math.floor(Math.random() * tmp_octave_range * scale.length) - tmp_octave_range * scale.length * 1/2), scale.length);
+			node.sequence[i].value = new Note( scale[ind] ) ;
 		}
 	}
 	else{
