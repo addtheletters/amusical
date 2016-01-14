@@ -44,11 +44,11 @@
     
     var BASEPLATE_STYLE = "gray";
     var DEFAULT_STYLE = "white";
-    var DEFAULT_TEXT_WIDTH = 100;
-    var FONT_SIZE = 30;
+    var DEFAULT_TEXT_WIDTH = 50;
+    var FONT_SIZE = 15;
     var DEFAULT_FONT = FONT_SIZE + "px Monospace";
     var DEFAULT_TEXT_FILL = "white";
-    var DEFAULT_TEXT_STROKE = "black";
+    var DEFAULT_TEXT_STROKE = "rgba(0, 0, 0, 0)";
 
     function plotRect(context, x, y, width, height, fillStyle, strokeStyle, lineWidth) {
         if (fillStyle) {
@@ -90,7 +90,7 @@
 		}
         else if(node.value instanceof Note){
             plotText(node.value.num, leContext, x + 3, y + yshrink, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
-            plotText(getNoteOrder()[node.value.num], leContext, x + 3, y + yshrink + FONT_SIZE, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
+            plotText(node.value.toSPN(), leContext, x + 3, y + yshrink + FONT_SIZE, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
         }
         return true;
     }
@@ -147,14 +147,12 @@
         lastshown = noda;
     }
 
-    function getStyle(node, level) {        
-        var TEMP_GLOBAL_NUM_TONES = 12;
+    function getStyle(node, level) {
     	//level = level || 0;
         console.debug("getStyle debug");
         console.debug(node);
         if (node.value instanceof Note) {
-            console.debug("note " + node.value)
-            return colors.getStyleFromRGB(colors.HSVtoRGB( mod(node.value.num, TEMP_GLOBAL_NUM_TONES) / TEMP_GLOBAL_NUM_TONES, 1, 1));
+            return colors.getStyleFromRGB(colors.HSVtoRGB(getIndicHSV(node.value)));
         }
         else if (node.value instanceof Array) {
         	if(!level){
@@ -162,6 +160,16 @@
         	}
         }
     	return DEFAULT_STYLE;
+    }
+    
+    function getIndicHSV(note){
+        intensity = ( Math.pow( note.toSPN().octave, 1.5) / Math.pow(4, 1.5));
+        noteHSV = {
+            h:mod(note.num, NUM_TONES) / NUM_TONES,
+            s:1,
+            v:intensity/1.5
+        };
+        return noteHSV;
     }
 
     </script>

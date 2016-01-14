@@ -1,7 +1,4 @@
 
-var NUM_NOTES = 12;
-var DEFAULT_OCTAVE = 4;
-
 /*
 var note_association = {
 	0:"C", // middle C. SPN is C4
@@ -18,6 +15,9 @@ var note_association = {
 	11:"B"
 };
 */
+
+var NUM_TONES = 12;
+var DEFAULT_OCTAVE = 4;
 
 var note_order = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
@@ -48,12 +48,12 @@ function SPN( letr, octv ){
     this.octave = octv || 4;  
 };
     SPN.prototype.toNum = function(){
-        return NUM_NOTES * (octv - DEFAULT_OCTAVE) + getNoteOrder().indexOf(this.letter); // assumes 0 is middle-C
+        return NUM_TONES * (octv - DEFAULT_OCTAVE) + getNoteOrder().indexOf(this.letter); // assumes 0 is middle-C
     };
     
     SPN.prototype.fromNum = function( num ){
-        this.letter = getNoteOrder()[ mod(num, NUM_NOTES) ];
-        this.octave = Math.floor( num / NUM_NOTES ) + DEFAULT_OCTAVE;
+        this.letter = getNoteOrder()[ mod(num, NUM_TONES) ];
+        this.octave = Math.floor( num / NUM_TONES ) + DEFAULT_OCTAVE;
         return this;
     };
     
@@ -324,7 +324,7 @@ function Tonalize( node ){
 	if(node.sequence.length > 0){
 		console.debug("node is tonalizable");
 		for(var i = 0; i < node.sequence.length; i++){
-			node.sequence[i].value = new Note(Math.floor(Math.random() * 12));
+			node.sequence[i].value = new Note(Math.floor(Math.random() * 48) - 24);
 		}
 	}
 	else{
