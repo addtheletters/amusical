@@ -393,9 +393,8 @@ function Tonalize( node, scale ){
 	if(node.sequence.length > 0){
 		//console.debug("node is tonalizable");
 		for(var i = 0; i < node.sequence.length; i++){
-            // TODO: this doesn't do multioctaves anymore with the scales (because of the moduluo)
-            var ind = mod( (Math.floor(Math.random() * tmp_octave_range * scale.length) - tmp_octave_range * scale.length * 1/2), scale.length);
-			node.sequence[i].value = new Note( scale[ind] ) ;
+            var ind = (Math.floor(Math.random() * tmp_octave_range * scale.length) - tmp_octave_range * scale.length * 1/2);
+			node.sequence[i].value = new Note( scale[mod(ind, scale.length)] + NUM_TONES * Math.floor(ind / scale.length) ) ;
 		}
 	}
 	else{
