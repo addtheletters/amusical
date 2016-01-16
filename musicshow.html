@@ -88,7 +88,7 @@
 				lastStartPos += subwidth;
 			}
 		}
-        else if(node.value instanceof Note){
+        else if(node.value instanceof music.Note){
             plotText(node.value.num, leContext, x + 3, y + yshrink, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
             plotText(node.value.toSPN(), leContext, x + 3, y + yshrink + FONT_SIZE, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
         }
@@ -148,8 +148,8 @@
     }
 
     function newSection() {
-        var noda = BuildRhythm(4, PATTERNS, 10, 3);
-        Tonalize(noda, scales[3]);
+        var noda = music.BuildRhythm(4, music.PATTERNS, 10, 3);
+        music.Tonalize(noda, music.scales[3]);
         showNode(noda, 20, 20, 1000, 250, 20);
         dispnodes.push(noda);
         lastshown = noda;
@@ -157,7 +157,7 @@
 
     function getStyle(node, level) {
     	//level = level || 0;
-        if (node.value instanceof Note) {
+        if (node.value instanceof music.Note) {
             return colors.getStyleFromRGB(colors.HSVtoRGB(getIndicHSV(node.value)));
         }
         else if (node.value instanceof Array) {
@@ -171,7 +171,7 @@
     function getIndicHSV(note){
         intensity = ( Math.pow( note.toSPN().octave, 1.5) / Math.pow(4, 1.5));
         noteHSV = {
-            h:mod(note.num, NUM_TONES) / NUM_TONES,
+            h:mod(note.num, music.NUM_TONES) / music.NUM_TONES,
             s:1,
             v:intensity/1.5
         };
