@@ -7,6 +7,12 @@
     background-color: gray;
 }
 
+.musicnote:hover{
+    transition: 1s ease;
+    transform: scale(1.05);   
+    box-shadow: 5px 5px 100px 1px;
+}
+
 .musiclabel{
     position: relative;
     font-family: monospace;

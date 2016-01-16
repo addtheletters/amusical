@@ -25,6 +25,12 @@ function renderNode( node, width, zI ){
         }
     }
     else if(node.value instanceof music.Note){
+        ret.classList.add("musicnote");
+        ret.onclick = function(){
+            console.log("Clicked a node. Wow. What a terrible person.");
+            console.log(node.value);
+        }
+        
         var lbl1 = document.createElement("span");
         var lbl2 = document.createElement("span");
         lbl1.classList.add("musiclabel");
