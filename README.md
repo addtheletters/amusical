@@ -5,5 +5,5 @@ This project is in its infancy; ultimately, the goal is to have a program capabl
 
 on deck:
 - MIDI.js for making it actually play the tunes
-- replacing canvas display with a interactive HTML output
+- replacing canvas display with an interactive HTML output
 - actual fake composition based on combinations of shorter segments 

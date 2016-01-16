@@ -19,6 +19,7 @@ var note_association = {
 
 var NUM_TONES = 12;
 var DEFAULT_OCTAVE = 4;
+var ZERO_OCTAVE = -1; // at what octave number is C = 0?
 
 var note_order = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
@@ -73,7 +74,7 @@ var Note = function( arg ){
         console.debug("note initialized to default middle-C");
         //console.log("arg was")
         //console.log(arg)
-        this.num = 0;
+        this.num = 60;
     }
 };
 	Note.prototype.toString = function(){
@@ -94,15 +95,15 @@ function SPN( letr, octv ){
     /** includes accidental */
     this.letter = letr || "C";
     /* middle C is C4 */
-    this.octave = octv || 4;  
+    this.octave = octv || DEFAULT_OCTAVE;  
 };
     SPN.prototype.toNum = function(){
-        return NUM_TONES * (this.octave - DEFAULT_OCTAVE) + ParseLetter(this.letter); // assumes 0 is middle-C
+        return NUM_TONES * (this.octave - ZERO_OCTAVE) + ParseLetter(this.letter); // in compliance with MIDI, 0 is C-1
     };
     
     SPN.prototype.fromNum = function( num ){
         this.letter = getNoteOrder()[ mod(num, NUM_TONES) ];
-        this.octave = Math.floor( num / NUM_TONES ) + DEFAULT_OCTAVE;
+        this.octave = Math.floor( num / NUM_TONES ) + ZERO_OCTAVE;
         return this;
     };
     
@@ -111,7 +112,7 @@ function SPN( letr, octv ){
     };
     
     SPN.prototype.fromString = function( stra ){
-        var pivot = stra.search(/\d+/g, "")
+        var pivot = stra.search(/-?\d+/g, "")
         this.letter = stra.slice(0, pivot);
         this.octave = parseInt( stra.slice(pivot) );
         return this;
@@ -394,7 +395,7 @@ function Tonalize( node, scale ){
 		//console.debug("node is tonalizable");
 		for(var i = 0; i < node.sequence.length; i++){
             var ind = (Math.floor(Math.random() * tmp_octave_range * scale.length) - tmp_octave_range * scale.length * 1/2);
-			node.sequence[i].value = new Note( scale[mod(ind, scale.length)] + NUM_TONES * Math.floor(ind / scale.length) ) ;
+			node.sequence[i].value = new Note( (DEFAULT_OCTAVE - ZERO_OCTAVE) * NUM_TONES + scale[mod(ind, scale.length)] + NUM_TONES * Math.floor(ind / scale.length) ) ;
 		}
 	}
 	else{
