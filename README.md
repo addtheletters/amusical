@@ -7,3 +7,7 @@ on deck:
 - MIDI.js for making it actually play the tunes
 - replacing canvas display with an interactive HTML output
 - actual fake composition based on combinations of shorter segments 
+
+now with the aid of
+- [MIDI.js](https://github.com/mudcube/MIDI.js)
+- various associated libraries, see MIDI.js repo
