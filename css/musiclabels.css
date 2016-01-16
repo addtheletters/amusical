@@ -19,9 +19,9 @@ body {
     background-color:rgb(200, 0, 0);
 }
 .faded{
-        transition: visibility 0s 2s, opacity 5s ease;
-        opacity:0;
-        visibility: hidden;
+    transition: visibility 0s 2s, opacity 5s ease;
+    opacity:0;
+    visibility: hidden;
 }
 .info{
     box-shadow: 3px 5px 10px 1px gray;
