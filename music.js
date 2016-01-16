@@ -388,7 +388,7 @@ function FillByPattern( node, pattern, noReSeq ){
 }
 
 function Tonalize( node, scale ){
-    var tmp_octave_range = 4;
+    var tmp_octave_range = 2;
 	// fill with tones
 	if(node.sequence.length > 0){
 		//console.debug("node is tonalizable");

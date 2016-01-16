@@ -7,6 +7,9 @@ on which to
 
 arpeggios / chords somehow would be cools
 
+there should be a way to merge notes in generated nodes. how would this work when they are from different branches of the note tree? 
+the tree structure can essentially be scrapped once the sequence is created, allowing for recombination / reassignment of notes to fall underneath
+different parents.
 
 notes
 c c# d d# e f f# g g# a a# b
