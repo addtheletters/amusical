@@ -10,7 +10,8 @@
     ?>
     -->
     <title>a muse;amusing;a-musical.</title>
-
+    
+    
     <style type="text/css">
     body {
         font-family: monospace;
@@ -25,12 +26,15 @@
         text-align: center;
     }
     </style>
-    <script src="music.js">
-    // music node stuff
-    </script>
-    <script src="colors.js">
-    // color functions
-    </script>
+    
+    <script src="music.js">/* music node stuff */</script>
+    <script src="colors.js">/* color functions */</script>
+    
+    
+    <link rel="stylesheet" type="text/css" href="realized.css">
+    <script src="sequencerealizer.js"></script>
+       
+       
     <script type="text/javascript">
 
     var canvasID = "drawspace";
@@ -145,6 +149,8 @@
     function loadCanvas() {
         leCanvas = document.getElementById(canvasID);
         leContext = leCanvas.getContext("2d");
+        
+        newSection();
     }
 
     function newSection() {
@@ -153,6 +159,18 @@
         showNode(noda, 20, 20, 1000, 250, 20);
         dispnodes.push(noda);
         lastshown = noda;
+        
+        testRender();
+    }
+    
+    function testRender(){
+        var rdr = document.getElementById("render");
+        if( rdr.children.length < 1 ){
+            rdr.appendChild( renderNode(lastshown, 1000, 300, 20) );
+        }
+        else{
+            rdr.replaceChild( renderNode(lastshown, 1000, 300, 20), rdr.firstChild )
+        }
     }
 
     function getStyle(node, level) {
@@ -183,9 +201,11 @@
 <body onload="loadCanvas()">
     <div class=centered>
         <button onclick="newSection()">New Section</button>
+        <button onclick="testRender()">Render Last</button>
         <hr>
-            <canvas id="drawspace" width="1200" height="720" style="border: 1px solid black"></canvas>
-        
+        <canvas id="drawspace" width="1200" height="300" style="border: 1px solid black"></canvas>
+        <hr>
+        <div id=render></div>
     </div>
 </body>
 </html>

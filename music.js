@@ -142,6 +142,7 @@ var music = {};
         this.duration = duration || null;
         this.parent = parent || null;
         this.sequence = [];
+        this.value = value || null; // wow this was confusing
         if( !value ){
             //console.log("MusicNode: value not given, initializing without value");
         }

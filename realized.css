@@ -1,0 +1,25 @@
+.musicnode{
+    position: relative;
+    white-space: nowrap;
+    display:inline-block;
+    margin:-1px;
+    margin-top: 20px;
+    width: 100%;
+    border: 1px solid #000000; 
+    background-color: gray;
+}
+
+.musiclabel{
+    position: relative;
+    font-family: monospace;
+    font-size: 15px;
+    color:white;
+}
+
+#render{
+    position: static;
+    white-space: nowrap;
+    display: inline-block;
+    width: 1000px;
+    height: 300px;
+}
