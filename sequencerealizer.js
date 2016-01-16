@@ -1,11 +1,12 @@
 // intended to render sequences into interactive html
 
 /** returns DOM object? */
-function renderNode( node, width ){
+function renderNode( node, width, zI ){
     var ret = document.createElement("div");
     ret.classList.add("musicnode");
     
     ret.style.width = width + "px";
+    ret.style.zIndex = zI;
     
     if( node.value instanceof Array ){
         var lastStartPos = 0;
@@ -13,9 +14,10 @@ function renderNode( node, width ){
             var subdur = node.value[i].getDuration();
             var pcnt = subdur / node.getDuration();
             var subwidth = width * subdur / node.getDuration();
-            var chld = renderNode(node.value[i], subwidth);
-            chld.style.width = (pcnt * 100) + "%"
-            chld.style.zIndex = ret.style.zIndex + 1;
+            var chld = renderNode(node.value[i], subwidth, parseInt(ret.style.zIndex) + 1);
+            
+            chld.style.paddingTop = "20px";
+            chld.style.width = (pcnt * 100) + "%";
             lastStartPos += subwidth;
             //console.log("lastStartPos was " + lastStartPos + " at node");
             //console.log(node);

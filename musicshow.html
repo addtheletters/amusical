@@ -166,10 +166,10 @@
     function testRender(){
         var rdr = document.getElementById("render");
         if( rdr.children.length < 1 ){
-            rdr.appendChild( renderNode(lastshown, 1000, 300, 20) );
+            rdr.appendChild( renderNode(lastshown, 1000, 0) );
         }
         else{
-            rdr.replaceChild( renderNode(lastshown, 1000, 300, 20), rdr.firstChild )
+            rdr.replaceChild( renderNode(lastshown, 1000, 0), rdr.firstChild )
         }
     }
 
