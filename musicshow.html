@@ -9,7 +9,7 @@
     echo "<title>".$title."</title>";
     ?>
     -->
-    <title>a muse;amusing;a-musical.</title>
+    <title id="tt">a muse;amusing;a-musical.</title>
     
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	
@@ -27,6 +27,9 @@
     <link rel="stylesheet" type="text/css" href="css/musiclabels.css"> 
     
     <script type="text/javascript">
+    
+    
+    var titles = ["a muse", "amusing", "a-musical", "amusante", "a muse kale", "a moose king", "aim use sling"];
 
     var canvasID = "drawspace";
     var leCanvas;
@@ -44,6 +47,8 @@
     var DEFAULT_FONT = FONT_SIZE + "px Monospace";
     var DEFAULT_TEXT_FILL = "white";
     var DEFAULT_TEXT_STROKE = "rgba(0, 0, 0, 0)";
+    
+    var SPACEMAN_GO = "rgb(0, 200, 0)";
 
     function showNode(node, x, y, width, height, yshrink, childfunction) {
     	yshrink = yshrink || 10;
@@ -90,6 +95,8 @@
     }
     
     function loadCanvas() {
+        document.title = titles.randomChoice();
+
         leCanvas = document.getElementById(canvasID);
         leContext = leCanvas.getContext("2d");
         
@@ -97,12 +104,12 @@
             soundfontUrl: "./soundfont/",
             instrument: "acoustic_grand_piano",
             onprogress: function(state, progress) {
-                console.log(state, progress);
+                //console.log(state, progress);
             },
             onsuccess: function() {
                 var ld = document.getElementById("loaded");
                 ld.innerHTML = "[loaded!]";
-                ld.style.backgroundColor = "rgb(0, 200, 0)";
+                ld.style.backgroundColor = SPACEMAN_GO;
                 setTimeout( function(){ ld.classList.add("faded") }, 5000 );
                 /*
                 var delay = 0; // play one note every quarter second
@@ -139,7 +146,7 @@
         var noda = music.BuildRhythm(4, music.PATTERNS, 10, 3);
         var sca = music.scales.randomChoice();
         music.Tonalize(noda, sca);
-        showNode(noda, 20, 20, 1000, 250, 20);
+        showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
         showInfo("scale is [" + music.LetterizeScale(sca) + "]", 0);
         dispnodes.push(noda);
@@ -164,7 +171,7 @@
     <div class=centered>
         <button onclick="newSection()">New Section</button><br><br><span id="infobox0" class=info></span><br><br><span id="infobox1" class=info></span>
         <hr>
-        <canvas id="drawspace" width="1200" height="300" style="border: 1px solid black"></canvas>
+        <canvas id="drawspace" width="1200" height="200" style="border: 1px solid black"></canvas>
         <hr>
         <div id=render></div>
     </div>

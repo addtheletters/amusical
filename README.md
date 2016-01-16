@@ -5,7 +5,7 @@ This project is in its infancy; ultimately, the goal is to have a program capabl
 
 on deck:
 - ~~MIDI.js for making it actually play the tunes~~ integrated! now just need to implement auto-play
-- ~~replacing canvas display with an interactive HTML output~~ works, thought not exactly as originally intended
+- ~~replacing canvas display with an interactive HTML output~~ works, though not exactly as originally intended
 - actual fake composition based on combinations of shorter segments
 
 now with the aid of
