@@ -11,35 +11,6 @@
     -->
     <title>a muse;amusing;a-musical.</title>
     
-    
-    <style type="text/css">
-    body {
-        font-family: monospace;
-        font-size: 25px;
-    }
-    .centered {
-        position: relative;
-        max-width: 1400px;
-        height: auto;
-        margin: auto;
-        padding: 10px;
-        text-align: center;
-    }
-    #loaded{
-        position: fixed;
-        z-index: 100;
-        font-size:20px;
-        color: white;
-        transition: 1s ease;
-        background-color:rgb(200, 0, 0);
-    }
-    .faded{
-         transition: visibility 0s 2s, opacity 5s ease;
-         opacity:0;
-         visibility: hidden;
-    }
-    </style>
-    
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	
     <script src="js/MIDI.js">/* MIDI API */</script>
@@ -53,6 +24,7 @@
     <script src="js/plotting.js">/* extremely simple canvas drawing */</script>
     <script src="js/sequencerealizer.js">/* rendering node as html */</script>
     <link rel="stylesheet" type="text/css" href="css/realized.css">
+    <link rel="stylesheet" type="text/css" href="css/musiclabels.css"> 
     
     <script type="text/javascript">
 
@@ -188,9 +160,9 @@
     </script>
 </head>
 <body onload="loadCanvas()">
-    <span id="loaded">[loading MIDI library...]</span>
+    <span id="loaded" class=info>[loading MIDI library...]</span>
     <div class=centered>
-        <button onclick="newSection()">New Section</button><br><span id="infobox0"></span><br><span id="infobox1"></span>
+        <button onclick="newSection()">New Section</button><br><br><span id="infobox0" class=info></span><br><br><span id="infobox1" class=info></span>
         <hr>
         <canvas id="drawspace" width="1200" height="300" style="border: 1px solid black"></canvas>
         <hr>
