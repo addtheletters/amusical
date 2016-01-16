@@ -1,6 +1,6 @@
 // intended to render sequences into interactive html
 
-/** returns DOM object? */
+/** returns DOM object */
 function renderNode( node, width, zI ){
     var ret = document.createElement("div");
     ret.classList.add("musicnode");
@@ -16,7 +16,7 @@ function renderNode( node, width, zI ){
             var subwidth = width * subdur / node.getDuration();
             var chld = renderNode(node.value[i], subwidth, parseInt(ret.style.zIndex) + 1);
             
-            chld.style.paddingTop = "20px";
+            //chld.style.paddingTop = "20px";
             chld.style.width = (pcnt * 100) + "%";
             lastStartPos += subwidth;
             //console.log("lastStartPos was " + lastStartPos + " at node");
@@ -29,6 +29,15 @@ function renderNode( node, width, zI ){
         ret.onclick = function(){
             console.log("Clicked a node. Wow. What a terrible person.");
             console.log(node.value);
+            
+            document.getElementById("infobox1").innerText = node.value;
+        }
+        ret.onmouseover = function(){
+            ret.oldZI = ret.style.zIndex;
+            ret.style.zIndex = (parseInt(ret.oldZI) + 10) + "";
+        }
+        ret.onmouseout = function(){
+            ret.style.zIndex = ret.oldZI;
         }
         
         var lbl1 = document.createElement("span");
