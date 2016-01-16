@@ -29,11 +29,10 @@
     
     <script src="music.js">/* music node stuff */</script>
     <script src="colors.js">/* color functions */</script>
-    
+    <script src="plotting.js">/* extremely simple canvas drawing */</script>
     
     <link rel="stylesheet" type="text/css" href="realized.css">
     <script src="sequencerealizer.js"></script>
-       
        
     <script type="text/javascript">
 
@@ -53,30 +52,6 @@
     var DEFAULT_FONT = FONT_SIZE + "px Monospace";
     var DEFAULT_TEXT_FILL = "white";
     var DEFAULT_TEXT_STROKE = "rgba(0, 0, 0, 0)";
-
-    function plotRect(context, x, y, width, height, fillStyle, strokeStyle, lineWidth) {
-        if (fillStyle) {
-            context.fillStyle = fillStyle;
-            context.fillRect(x, y, width, height);
-        }
-        if (strokeStyle) {
-        	if(lineWidth){
-        		context.lineWidth = lineWidth;
-        	}
-        	context.strokeStyle = strokeStyle;
-            context.beginPath();
-            context.rect(x, y, width, height);
-            context.stroke();
-        }
-    }
-
-    function plotText(text, context, x, y, maxWidth, font, fillStyle, strokeStyle){
-    	context.font = font;
-    	context.fillStyle = fillStyle;
-        context.strokeStyle = strokeStyle;
-    	context.fillText(text, x, y, maxWidth);
-        context.strokeText(text, x, y, maxWidth);
-    }
 
     function showNode(node, x, y, width, height, yshrink, childfunction) {
     	yshrink = yshrink || 10;
@@ -98,54 +73,30 @@
         }
         return true;
     }
-    
-    /*
-    function sell_drinks(){
-        console.log("HI");
-    }
-    */
 
-    /*
- 
-    
-    function nodeLevelObj(node, level){
-        return {
-            'node':node,
-            'level':level
-            };
-    }
- 
-    function showNode_Iter(root, x, y, width, height, yshrink){
-        // unfinished
-        /*
-        var dispHelper = {};
-        yshrink = yshrink || 10;
-        console.log("showNode: plotting node (iterative)");
-        var queue = [nodeLevelObj(root, 0)];
-        while(queue.length > 0){
-            var nodeObj = queue.shift();
-            console.log("showNode: examining node at level " + nodeObj.level);
-            console.log(nodeObj);
-            if(!dispHelper[nodeObj.level]){
-                dispHelper[nodeObj.level] = [];
-            }
-            dispHelper[nodeObj.level].push(nodeObj.node);
-            if(!(nodeObj.node.value instanceof Array)){
-                //plotRect(leContext, x, y, width, height, getStyle(nodeObj.node, nodeObj.level), "black", 1);
-                continue;
-            }
-            // else...
-            for(var i = 0; i < nodeObj.node.value.length; i++){
-                queue.push(nodeLevelObj(nodeObj.node.value[i], nodeObj.level+1));
-            }
-            //plotRect(leContext, x, y, width, height, getStyle(nodeObj.node, nodeObj.level), "black", 1);
+    function getStyle(node, level) {
+    	//level = level || 0;
+        if (node.value instanceof music.Note) {
+            return colors.getStyleFromRGB(colors.HSVtoRGB(getIndicHSV(node.value)));
         }
-        return dispHelper;
-
-        // assuming I already did everything with reSequence
-    }*/
-
-
+        else if (node.value instanceof Array) {
+        	if(!level){
+        		return BASEPLATE_STYLE;
+        	}
+        }
+    	return DEFAULT_STYLE;
+    }
+    
+    function getIndicHSV(note){
+        intensity = ( Math.pow( note.toSPN().octave, 1.5) / Math.pow(4, 1.5));
+        noteHSV = {
+            h:mod(note.num, music.NUM_TONES) / music.NUM_TONES,
+            s:1,
+            v:intensity/1.5
+        };
+        return noteHSV;
+    }
+    
     function loadCanvas() {
         leCanvas = document.getElementById(canvasID);
         leContext = leCanvas.getContext("2d");
@@ -171,29 +122,6 @@
         else{
             rdr.replaceChild( renderNode(lastshown, 1000, 0), rdr.firstChild )
         }
-    }
-
-    function getStyle(node, level) {
-    	//level = level || 0;
-        if (node.value instanceof music.Note) {
-            return colors.getStyleFromRGB(colors.HSVtoRGB(getIndicHSV(node.value)));
-        }
-        else if (node.value instanceof Array) {
-        	if(!level){
-        		return BASEPLATE_STYLE;
-        	}
-        }
-    	return DEFAULT_STYLE;
-    }
-    
-    function getIndicHSV(note){
-        intensity = ( Math.pow( note.toSPN().octave, 1.5) / Math.pow(4, 1.5));
-        noteHSV = {
-            h:mod(note.num, music.NUM_TONES) / music.NUM_TONES,
-            s:1,
-            v:intensity/1.5
-        };
-        return noteHSV;
     }
 
     </script>

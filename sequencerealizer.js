@@ -13,7 +13,7 @@ function renderNode( node, width, zI ){
         for(var i = 0; i < node.value.length; i++){
             var subdur = node.value[i].getDuration();
             var pcnt = subdur / node.getDuration();
-            var subwidth = width * subdur / node.getDuration();
+            var subwidth = width * pcnt;
             var chld = renderNode(node.value[i], subwidth, parseInt(ret.style.zIndex) + 1);
             
             //chld.style.paddingTop = "20px";
