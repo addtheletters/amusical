@@ -31,6 +31,7 @@ function renderNode( node, width, zI ){
             console.log(node.value);
             
             document.getElementById("infobox1").innerText = node.value;
+            playNote(0, node.value.num, 127, node.getDuration(), 0);
         }
         ret.onmouseover = function(){
             ret.oldZI = ret.style.zIndex;
