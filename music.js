@@ -137,6 +137,16 @@ var music = {};
         }
         return cpy;
     }
+    
+    root.LetterizeScale = function(scale){
+        var cpy = scale.slice();
+        for( var i = 0; i < cpy.length; i++ ){
+            if( typeof scale[i] === 'number' ){
+                cpy[i] = root.getNoteOrder()[mod(scale[i], root.NUM_TONES)];
+            }
+        }
+        return cpy;
+    }
 
     root.MusicNode = function( duration, value, parent ){
         this.duration = duration || null;

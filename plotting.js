@@ -1,4 +1,6 @@
-function plotRect(context, x, y, width, height, fillStyle, strokeStyle, lineWidth) {
+var plot = {};
+
+plot.Rect = function(context, x, y, width, height, fillStyle, strokeStyle, lineWidth) {
         if (fillStyle) {
             context.fillStyle = fillStyle;
             context.fillRect(x, y, width, height);
@@ -14,10 +16,14 @@ function plotRect(context, x, y, width, height, fillStyle, strokeStyle, lineWidt
         }
     }
 
-function plotText(text, context, x, y, maxWidth, font, fillStyle, strokeStyle){
+plot.Text = function(text, context, x, y, maxWidth, font, fillStyle, strokeStyle){
     context.font = font;
     context.fillStyle = fillStyle;
     context.strokeStyle = strokeStyle;
     context.fillText(text, x, y, maxWidth);
     context.strokeText(text, x, y, maxWidth);
+}
+
+function getPlotLib(){
+    return plot;
 }

@@ -56,7 +56,7 @@
     function showNode(node, x, y, width, height, yshrink, childfunction) {
     	yshrink = yshrink || 10;
     	//console.log("showNode: plotting node (recursive)");
-        plotRect(leContext, x, y, width, height, getStyle(node), "black", 1); // baseplate
+        plot.Rect(leContext, x, y, width, height, getStyle(node), "black", 1); // baseplate
         if( node.value instanceof Array ){
 			//console.log("showNode: node value is an array");
 			var lastStartPos = 0;
@@ -68,8 +68,8 @@
 			}
 		}
         else if(node.value instanceof music.Note){
-            plotText(node.value.num, leContext, x + 3, y + yshrink, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
-            plotText(node.value.toSPN(), leContext, x + 3, y + yshrink + FONT_SIZE, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
+            plot.Text(node.value.num, leContext, x + 3, y + yshrink, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
+            plot.Text(node.value.toSPN(), leContext, x + 3, y + yshrink + FONT_SIZE, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
         }
         return true;
     }
@@ -103,14 +103,26 @@
         
         newSection();
     }
+    
+    function showInfo(info, box_number){
+        var ib = document.getElementById("infobox" + box_number);
+        ib.innerHTML = info;
+    }
+    
+    function clearInfo(){
+        showInfo("[._.]", 0);
+        showInfo("[~.~]",1);
+    }
 
     function newSection() {
         var noda = music.BuildRhythm(4, music.PATTERNS, 10, 3);
-        music.Tonalize(noda, music.scales[3]);
+        var sca = music.scales.randomChoice();
+        music.Tonalize(noda, sca);
         showNode(noda, 20, 20, 1000, 250, 20);
+        clearInfo();
+        showInfo("scale is [" + music.LetterizeScale(sca) + "]", 0);
         dispnodes.push(noda);
         lastshown = noda;
-        
         testRender();
     }
     
@@ -123,12 +135,14 @@
             rdr.replaceChild( renderNode(lastshown, 1000, 0), rdr.firstChild )
         }
     }
+    
+    
 
     </script>
 </head>
 <body onload="loadCanvas()">
     <div class=centered>
-        <button onclick="newSection()">New Section</button><br><span id="infobox1">~</span>
+        <button onclick="newSection()">New Section</button><br><span id="infobox0"></span><br><span id="infobox1"></span>
         <hr>
         <canvas id="drawspace" width="1200" height="300" style="border: 1px solid black"></canvas>
         <hr>
