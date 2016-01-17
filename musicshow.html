@@ -134,6 +134,12 @@
     
     function playNode( node, channel, volume ){
         //console.log("beginning play of ", node);
+        if(node.domElement){
+            console.log("lighten!");
+            console.log(node.domElement);
+            node.domElement.classList.add("playing");
+        }
+        
         if( node.value instanceof Array ){
             (function playSequential( nde, index){
                 //console.log("playing ", nde, " index ", index);
@@ -147,6 +153,10 @@
         else if(node.value instanceof music.Note){
             //console.log("sound", node.value);
             playNote(channel, node.value.num, volume, node.getDuration(), 0);
+        }
+        
+        if(node.domElement){
+            setTimeout( function(){ node.domElement.classList.remove("playing"); }, node.getDuration() * 1000 );
         }
         //console.log("completed play of ", node);
     }
