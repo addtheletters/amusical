@@ -29,7 +29,7 @@
     <script type="text/javascript">
     
     
-    var titles = ["a muse", "amusing", "a-musical", "amusante", "a muse kale", "a moose king", "aim use sling"];
+    var titles = ["musical", "a muse", "amusing", "a-musical", "amusante", "a muse kale", "a moose king", "aim use sling", "ah moose aunt"];
 
     var canvasID = "drawspace";
     var leCanvas;
@@ -148,7 +148,7 @@
         music.Tonalize(noda, sca);
         showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
-        showInfo("scale is [" + music.LetterizeScale(sca) + "]", 0);
+        showInfo("scale is [" + music.LetterizeScale(sca) + "]", 0); // make scales a js object so they can be named / categorized?
         dispnodes.push(noda);
         lastshown = noda;
         testRender();
