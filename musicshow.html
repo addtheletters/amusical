@@ -36,7 +36,9 @@
     var leContext;
 
     var dispnodes = [];
-    var lastshown;
+    var last_shown;
+    var loop_timeout;
+    var should_loop;
     
     var colors = getColorsLib();
     
@@ -135,8 +137,8 @@
     function playNode( node, channel, volume ){
         //console.log("beginning play of ", node);
         if(node.domElement){
-            console.log("lighten!");
-            console.log(node.domElement);
+            //console.log("lighten!");
+            //console.log(node.domElement);
             node.domElement.classList.add("playing");
         }
         
@@ -161,6 +163,23 @@
         //console.log("completed play of ", node);
     }
     
+    function loopToggle( cb ){
+        //console.log("checkbox is", cb.checked);
+        should_loop = cb.checked;
+        if(should_loop == false){
+            clearTimeout(loop_timeout);
+        }
+    }
+    
+    function playTriggered(){
+        clearTimeout(loop_timeout);
+        playNode(last_shown, 0, 127);
+        if( should_loop ){
+            //console.log(last_shown.getDuration()*1000);
+            loop_timeout = setTimeout(function(){playTriggered();}, last_shown.getDuration()*1000);
+        }
+    }
+    
     function showInfo(info, box_number){
         var ib = document.getElementById("infobox" + box_number);
         ib.innerHTML = info;
@@ -179,36 +198,38 @@
         clearInfo();
         showInfo("scale is [" + music.LetterizeScale(sca) + "]", 0); // make scales a js object so they can be named / categorized?
         dispnodes.push(noda);
-        lastshown = noda;
+        last_shown = noda;
         testRender();
     }
     
     function testRender(){
         var rdr = document.getElementById("render");
         if( rdr.children.length < 1 ){
-            rdr.appendChild( renderNode(lastshown, 1000, 0) );
+            rdr.appendChild( renderNode(last_shown, 1000, 0) );
         }
         else{
-            rdr.replaceChild( renderNode(lastshown, 1000, 0), rdr.firstChild )
+            rdr.replaceChild( renderNode(last_shown, 1000, 0), rdr.firstChild )
         }
     }
 
     </script>
 </head>
-<body onload="loadCanvas()">
+<body onload="loadCanvas();">
     <span id="loaded" class=info>[loading MIDI library...]</span>
     <div class=centered>
-        <button onclick="newSection()">New Section</button>
-        <br>
-        <button onclick="playNode(lastshown,0,127)">Play Sequence</button>
-        <br><br>
+        <button onclick="newSection();">New Section</button>
+        <hr>
+        <div>
+            <button onclick="playTriggered();">Play Sequence</button> <label><input id="loopbox" type="checkbox" onclick="loopToggle(this);">Loop?</label>
+        </div>
+        <hr>
         <span id="infobox0" class=info></span>
         <br><br>
         <span id="infobox1" class=info></span>
         <hr>
-        <canvas id="drawspace" width="1200" height="200" style="border: 1px solid black"></canvas>
-        <hr>
         <div id=render></div>
+        <hr>
+        <canvas id="drawspace" width="1200" height="200" style="border: 1px solid black"></canvas>
     </div>
 </body>
 </html>
