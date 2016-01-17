@@ -150,7 +150,7 @@ var music = {};
 
     root.MusicNode = function( duration, value, parent ){
         this.duration = duration || null;
-        this.parent = parent || null;
+        this.parent = parent || null; // apprently naming things parent is a bad idea
         this.sequence = [];
         this.value = value || null; // wow this was confusing
         if( !value ){
@@ -246,7 +246,7 @@ var music = {};
                     this.reSequence(); //node);
                 }
                 else{
-                    //console.log("MusicNode (addInnerNode): skipped resequencing.");
+                    console.log("MusicNode (addInnerNode): skipped resequencing.");
                 }
             }
             else{
@@ -359,7 +359,7 @@ var music = {};
         }
         else{
             root.ClearNode(rhythm);
-            rhythm.FillByPattern( patterns.randomChoice(), true);
+            rhythm.FillByPattern( patterns.randomChoice(), false);
         }
     }
 
