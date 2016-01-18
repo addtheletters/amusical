@@ -49,8 +49,6 @@
     var DEFAULT_FONT = FONT_SIZE + "px Monospace";
     var DEFAULT_TEXT_FILL = "white";
     var DEFAULT_TEXT_STROKE = "rgba(0, 0, 0, 0)";
-    
-    var SPACEMAN_GO = "rgb(0, 200, 0)";
 
     function showNode(node, x, y, width, height, yshrink, childfunction) {
     	yshrink = yshrink || 10;
@@ -111,7 +109,8 @@
             onsuccess: function() {
                 var ld = document.getElementById("loaded");
                 ld.innerHTML = "[loaded!]";
-                ld.style.backgroundColor = SPACEMAN_GO;
+                ld.classList.remove("disabled");
+                ld.classList.add("enabled");
                 setTimeout( function(){ ld.classList.add("faded") }, 5000 );
                 /*
                 var delay = 0; // play one note every quarter second
@@ -125,6 +124,8 @@
             }
         });
         
+        clearInfo();
+        loopToggle( document.getElementById("loopbox") );
         newSection();
     }
     
@@ -166,6 +167,14 @@
     function loopToggle( cb ){
         //console.log("checkbox is", cb.checked);
         should_loop = cb.checked;
+        if(cb.checked){
+            document.getElementById("loopbox_label").classList.remove("disabled");
+            document.getElementById("loopbox_label").classList.add("enabled");
+        }
+        else{
+            document.getElementById("loopbox_label").classList.remove("enabled");
+            document.getElementById("loopbox_label").classList.add("disabled");
+        }
         if(should_loop == false){
             clearTimeout(loop_timeout);
         }
@@ -187,16 +196,16 @@
     
     function clearInfo(){
         showInfo("[._.]", 0);
-        showInfo("[~.~]",1);
+        showInfo("[~.~]", 1);
     }
 
     function newSection() {
-        var noda = music.BuildRhythm(4, music.PATTERNS, 10, 3);
+        var noda = music.BuildRhythm(4, music.PATTERNS, 10, 5);
         var sca = music.scales.randomChoice();
-        music.Tonalize(noda, sca);
+        music.Tonalize(noda, sca.sequence);
         showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
-        showInfo("scale is [" + music.LetterizeScale(sca) + "]", 0); // make scales a js object so they can be named / categorized?
+        showInfo(sca, 0); // make scales a js object so they can be named / categorized?
         dispnodes.push(noda);
         last_shown = noda;
         testRender();
@@ -215,12 +224,12 @@
     </script>
 </head>
 <body onload="loadCanvas();">
-    <span id="loaded" class=info>[loading MIDI library...]</span>
+    <span id="loaded" class="info disabled">[loading MIDI library...]</span>
     <div class=centered>
         <button onclick="newSection();">New Section</button>
         <hr>
         <div>
-            <button onclick="playTriggered();">Play Sequence</button> <label><input id="loopbox" type="checkbox" onclick="loopToggle(this);">Loop?</label>
+            <button onclick="playTriggered();">Play Sequence</button> <label id="loopbox_label"><input id="loopbox" type="checkbox" onclick="loopToggle(this);">Loop?</label>
         </div>
         <hr>
         <span id="infobox0" class=info></span>

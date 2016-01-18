@@ -119,30 +119,40 @@ var music = {};
             return this;
         };
         
+        
     // time for scales and stuff
     // 
+    
+    root.Scale = function( name, sequence ){
+        this.name = name || "unnamed scale";
+        this.sequence = sequence || [];
+    };
+        root.Scale.prototype.toString = function(){
+            return "[" + this.name + " {" + root.LetterizeSequence( this.sequence ) + "}]";
+        }  
+    
     root.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], // chromatic (all 12 tones)
-        [0, 2, 4, 5, 7, 9, 11], // diatonic C major
-        [7, 9, 11, 0, 2, 4, 6], // diatonic G major
-        [0, 2, 4, 7, 9] // pentatonic major from C 
+        new root.Scale("chromatic", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]), // chromatic (all 12 tones)
+        new root.Scale("C major", [0, 2, 4, 5, 7, 9, 11]), // diatonic C major
+        new root.Scale("G major", [7, 9, 11, 0, 2, 4, 6]), // diatonic G major
+        new root.Scale("pentatonic major from C", [0, 2, 4, 7, 9]) // pentatonic major from C 
     ];
 
-    root.NumberizeScale = function(scale){
-        var cpy = scale.slice();
+    root.NumberizeSequence = function(sequence){
+        var cpy = sequence.slice();
         for( var i = 0; i < cpy.length; i++ ){
-            if( typeof scale[i] === 'string' ){
-                cpy[i] = root.ParseLetter(scale[i]);
+            if( typeof sequence[i] === 'string' ){
+                cpy[i] = root.ParseLetter(sequence[i]);
             }
         }
         return cpy;
     }
     
-    root.LetterizeScale = function(scale){
-        var cpy = scale.slice();
+    root.LetterizeSequence = function(sequence){
+        var cpy = sequence.slice();
         for( var i = 0; i < cpy.length; i++ ){
-            if( typeof scale[i] === 'number' ){
-                cpy[i] = root.getNoteOrder()[mod(scale[i], root.NUM_TONES)];
+            if( typeof sequence[i] === 'number' ){
+                cpy[i] = root.getNoteOrder()[mod(sequence[i], root.NUM_TONES)];
             }
         }
         return cpy;
@@ -188,7 +198,6 @@ var music = {};
                 this.sequence[i].effect();
             }
         }
-
 
         root.MusicNode.prototype.getDuration = function(){
             return this.duration;
@@ -400,14 +409,14 @@ var music = {};
         return node;
     }
 
-    root.Tonalize = function( node, scale ){
+    root.Tonalize = function( node, tones ){
         var tmp_octave_range = 2;
         // fill with tones
         if(node.sequence.length > 0){
             //console.debug("node is tonalizable");
             for(var i = 0; i < node.sequence.length; i++){
-                var ind = (Math.floor(Math.random() * tmp_octave_range * scale.length) - tmp_octave_range * scale.length * 1/2);
-                node.sequence[i].value = new root.Note( (root.DEFAULT_OCTAVE - root.ZERO_OCTAVE) * root.NUM_TONES + scale[mod(ind, scale.length)] + root.NUM_TONES * Math.floor(ind / scale.length) ) ;
+                var ind = (Math.floor(Math.random() * tmp_octave_range * tones.length) - tmp_octave_range * tones.length * 1/2);
+                node.sequence[i].value = new root.Note( (root.DEFAULT_OCTAVE - root.ZERO_OCTAVE) * root.NUM_TONES + tones[mod(ind, tones.length)] + root.NUM_TONES * Math.floor(ind / tones.length) ) ;
             }
         }
         else{

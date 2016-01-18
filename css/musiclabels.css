@@ -10,14 +10,6 @@ body {
     padding: 10px;
     text-align: center;
 }
-#loaded{
-    position: fixed;
-    z-index: 100;
-    font-size:20px;
-    color: white;
-    transition: 1s ease;
-    background-color:rgb(200, 0, 0);
-}
 .faded{
     transition: visibility 0s 2s, opacity 5s ease;
     opacity:0;
@@ -25,4 +17,20 @@ body {
 }
 .info{
     box-shadow: 3px 5px 10px 1px gray;
+}
+.enabled{
+    background-color: rgba(0, 210, 0, .6);
+}
+.disabled{
+    background-color: rgba(210, 0, 0, .6);
+}
+label{
+    transition: 1s ease;    
+}
+#loaded{
+    position: fixed;
+    z-index: 100;
+    font-size:20px;
+    color: white;
+    transition: 1s ease;
 }
