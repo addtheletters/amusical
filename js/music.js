@@ -30,8 +30,7 @@ String.prototype.repeat = function( num ){
 		return "";
 	}
     return new Array( num + 1 ).join( this );
-}
-
+};
 
 Array.prototype.sum = function( valueFunc ){
 	valueFunc = valueFunc || function( item ){
@@ -43,11 +42,11 @@ Array.prototype.sum = function( valueFunc ){
 	    total += valueFunc(this[i]);
 	}
 	return total;
-}
+};
 
 Array.prototype.randomChoice = function(){
 	return this[Math.floor( Math.random() * this.length )];
-}
+};
 
 Array.prototype.injectArray = function( index, arr ) {
     return this.slice( 0, index ).concat( arr ).concat( this.slice( index ) );
@@ -63,7 +62,7 @@ Array.prototype.injectArray = function( index, arr ) {
 
     root.getNoteOrder = function(){
         return this.note_order;
-    }
+    };
 
     root.letter_vals = {
         "C":0,
@@ -95,8 +94,7 @@ Array.prototype.injectArray = function( index, arr ) {
             return root.accidental_vals[acc] || 0;
         });
         return root.letter_vals[base] + modifier;
-    }
-
+    };
 
     root.Note = function( arg ){
         if( typeof arg === 'string' ){
@@ -124,7 +122,12 @@ Array.prototype.injectArray = function( index, arr ) {
         root.Note.prototype.fromSPN = function( spn ){
             this.num = spn.toNum();
         };
-        
+    
+    // TODO a lot of work on this
+    root.Chord = function( tones, name ){
+        this.name = name || "unnamed chord";
+        this.tones = root.NumberizeSequence(tones) || [];
+    };
 
     root.SPN = function( letr, octv ){
         /** includes accidental */
@@ -161,7 +164,7 @@ Array.prototype.injectArray = function( index, arr ) {
     // but rather as the size of the steps between notes
     // this would allow easy key-switching in many cases
     
-    root.Scale = function( name, sequence ){
+    root.Scale = function( sequence, name ){
         this.name = name || "unnamed scale";
         this.sequence = root.NumberizeSequence(sequence) || [];
     };
@@ -190,15 +193,15 @@ Array.prototype.injectArray = function( index, arr ) {
     }
     
     root.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
-        new root.Scale("chromatic", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]), // chromatic (all 12 tones)
-        new root.Scale("C major", [0, 2, 4, 5, 7, 9, 11]), // diatonic C major
-        new root.Scale("G major", [7, 9, 11, 0, 2, 4, 6]), // diatonic G major
-        new root.Scale("pentatonic minor blues C", ["C","Eb","F","F#","G","Bb"]), // they say pentatonic scales sound good even when mashing
-        new root.Scale("pentatonic major blues E", ["E","F#","G","G#","B","C#"]),
-        new root.Scale("pentatonic major from C", [0, 2, 4, 7, 9]), 
-        new root.Scale("pentatonic minor from D", ["D","F","G","A","C"]),
-        new root.Scale("pentatonic insen from C", ["C","C#","F","G","A#"]), // "japanese" mode
-        new root.Scale("pentatonic hirajoshi from D", ["D","Eb","G","Ab","C"])
+        new root.Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],  "chromatic 12 tone"), // chromatic (all 12 tones)
+        new root.Scale([0, 2, 4, 5, 7, 9, 11],                  "C major"), // diatonic C major
+        new root.Scale([7, 9, 11, 0, 2, 4, 6],                  "G major"), // diatonic G major
+        new root.Scale(["C","Eb","F","F#","G","Bb"],            "pentatonic minor blues C"), // they say pentatonic scales sound good even when mashing
+        new root.Scale(["E","F#","G","G#","B","C#"],            "pentatonic major blues E"),
+        new root.Scale([0, 2, 4, 7, 9],                         "pentatonic major from C"), 
+        new root.Scale(["D","F","G","A","C"],                   "pentatonic minor from D"),
+        new root.Scale(["C","C#","F","G","A#"],                 "pentatonic insen from C"), // "japanese" mode
+        new root.Scale(["D","Eb","G","Ab","C"],                 "pentatonic hirajoshi from D")
     ];
 
     root.MusicNode = function( duration, value, parent ){
