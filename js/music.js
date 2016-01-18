@@ -114,6 +114,10 @@ Array.prototype.injectArray = function( index, arr ) {
             return "[Note: num(" + this.num + "), SPN("+ this.toSPN() +")]";// dur(" + this.duration + ")]";
         };
         
+        root.Note.prototype.play = function( channel, volume, duration, delay ){
+            playNote( channel, this.num, volume, duration, delay );
+        };
+          
         /** scientific pitch notation: https://en.wikipedia.org/wiki/Scientific_pitch_notation */
         root.Note.prototype.toSPN = function(){
             return new root.SPN().fromNum(this.num);
@@ -123,11 +127,19 @@ Array.prototype.injectArray = function( index, arr ) {
             this.num = spn.toNum();
         };
     
-    // TODO a lot of work on this
     root.Chord = function( tones, name ){
         this.name = name || "unnamed chord";
         this.tones = root.NumberizeSequence(tones) || [];
     };
+        root.Chord.prototype.toString = function(){
+            return "[Chord: ("+name+")]";// dur(" + this.duration + ")]";
+        };
+        
+        root.Chord.prototype.play = function( channel, volume, duration, delay ){
+            for(var i = 0; i < this.tones.length; i++){
+                playNote( channel, this.tones[i], volume, duration, delay );
+            }
+        };
 
     root.SPN = function( letr, octv ){
         /** includes accidental */
@@ -169,7 +181,7 @@ Array.prototype.injectArray = function( index, arr ) {
         this.sequence = root.NumberizeSequence(sequence) || [];
     };
         root.Scale.prototype.toString = function(){
-            return "[" + this.name + " {" + root.LetterizeSequence( this.sequence ) + "}]";
+            return "[Scale: (" + this.name + ") {" + root.LetterizeSequence( this.sequence ) + "}]";
         }  
 
     root.NumberizeSequence = function(sequence){
@@ -224,7 +236,10 @@ Array.prototype.injectArray = function( index, arr ) {
             }
         }
     }
-
+    
+    
+        // TODO make this do what (playNode) does
+        
         // effect functions won't work like this
         // are placeholder
         root.MusicNode.prototype.effect = function(){
@@ -238,7 +253,7 @@ Array.prototype.injectArray = function( index, arr ) {
                 }
             }
         }
-
+        
         root.MusicNode.prototype.sequentialEffect = function(){
             for(var i = 0; i < this.sequence.length; i++){
                 this.sequence[i].effect();

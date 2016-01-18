@@ -104,7 +104,7 @@
         }
         else if(node.value instanceof music.Note){
             //console.log("sound", node.value);
-            playNote(channel, node.value.num, volume, node.getDuration(), 0);
+            node.value.play(channel, volume, node.getDuration(), 0);
         }
         
         if(node.domElement){
