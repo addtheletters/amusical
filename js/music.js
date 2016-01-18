@@ -19,6 +19,40 @@ var note_association = {
 
 var music = {};
 
+// utility stuff here. Good structuring would have these placed somewhere much better. Eh.
+
+function mod(a, b){
+    return ((a % b) + b) % b;
+}
+
+String.prototype.repeat = function( num ){
+	if(num <= 0){
+		return "";
+	}
+    return new Array( num + 1 ).join( this );
+}
+
+
+Array.prototype.sum = function( valueFunc ){
+	valueFunc = valueFunc || function( item ){
+		return item;
+	};
+	var total = 0;
+	for(var i=0,n=this.length; i<n; ++i)
+	{
+	    total += valueFunc(this[i]);
+	}
+	return total;
+}
+
+Array.prototype.randomChoice = function(){
+	return this[Math.floor( Math.random() * this.length )];
+}
+
+Array.prototype.injectArray = function( index, arr ) {
+    return this.slice( 0, index ).concat( arr ).concat( this.slice( index ) );
+};
+
 (function(root){
 
     root.NUM_TONES = 12;
@@ -129,18 +163,11 @@ var music = {};
     
     root.Scale = function( name, sequence ){
         this.name = name || "unnamed scale";
-        this.sequence = sequence || [];
+        this.sequence = root.NumberizeSequence(sequence) || [];
     };
         root.Scale.prototype.toString = function(){
             return "[" + this.name + " {" + root.LetterizeSequence( this.sequence ) + "}]";
         }  
-    
-    root.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
-        new root.Scale("chromatic", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]), // chromatic (all 12 tones)
-        new root.Scale("C major", [0, 2, 4, 5, 7, 9, 11]), // diatonic C major
-        new root.Scale("G major", [7, 9, 11, 0, 2, 4, 6]), // diatonic G major
-        new root.Scale("pentatonic major from C", [0, 2, 4, 7, 9]) // pentatonic major from C 
-    ];
 
     root.NumberizeSequence = function(sequence){
         var cpy = sequence.slice();
@@ -161,6 +188,18 @@ var music = {};
         }
         return cpy;
     }
+    
+    root.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
+        new root.Scale("chromatic", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]), // chromatic (all 12 tones)
+        new root.Scale("C major", [0, 2, 4, 5, 7, 9, 11]), // diatonic C major
+        new root.Scale("G major", [7, 9, 11, 0, 2, 4, 6]), // diatonic G major
+        new root.Scale("pentatonic minor blues C", ["C","Eb","F","F#","G","Bb"]), // they say pentatonic scales sound good even when mashing
+        new root.Scale("pentatonic major blues E", ["E","F#","G","G#","B","C#"]),
+        new root.Scale("pentatonic major from C", [0, 2, 4, 7, 9]), 
+        new root.Scale("pentatonic minor from D", ["D","F","G","A","C"]),
+        new root.Scale("pentatonic insen from C", ["C","C#","F","G","A#"]), // "japanese" mode
+        new root.Scale("pentatonic hirajoshi from D", ["D","Eb","G","Ab","C"])
+    ];
 
     root.MusicNode = function( duration, value, parent ){
         this.duration = duration || null;
@@ -430,39 +469,7 @@ var music = {};
  
 })(music);
 
-// utility stuff down here. Good structuring would have these placed somewhere much better. Eh.
 
-function mod(a, b){
-    return ((a % b) + b) % b;
-}
-
-String.prototype.repeat = function( num ){
-	if(num <= 0){
-		return "";
-	}
-    return new Array( num + 1 ).join( this );
-}
-
-
-Array.prototype.sum = function( valueFunc ){
-	valueFunc = valueFunc || function( item ){
-		return item;
-	};
-	var total = 0;
-	for(var i=0,n=this.length; i<n; ++i)
-	{
-	    total += valueFunc(this[i]);
-	}
-	return total;
-}
-
-Array.prototype.randomChoice = function(){
-	return this[Math.floor( Math.random() * this.length )];
-}
-
-Array.prototype.injectArray = function( index, arr ) {
-    return this.slice( 0, index ).concat( arr ).concat( this.slice( index ) );
-};
 
 
 //var bob = BuildBob( 4, 1/4 );
