@@ -205,7 +205,7 @@
         music.Tonalize(noda, sca.sequence);
         showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
-        showInfo("scale is [" + music.LetterizeSequence(sca.sequence) + "]", 0); // make scales a js object so they can be named / categorized?
+        showInfo(sca, 0); // make scales a js object so they can be named / categorized?
         dispnodes.push(noda);
         last_shown = noda;
         testRender();

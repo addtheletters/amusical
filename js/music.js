@@ -128,7 +128,7 @@ var music = {};
         this.sequence = sequence || [];
     };
         root.Scale.prototype.toString = function(){
-            return this.name + this.sequence;
+            return "[" + this.name + " {" + root.LetterizeSequence( this.sequence ) + "}]";
         }  
     
     root.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
@@ -138,7 +138,7 @@ var music = {};
         new root.Scale("pentatonic major from C", [0, 2, 4, 7, 9]) // pentatonic major from C 
     ];
 
-    root.NumberizeTones = function(sequence){
+    root.NumberizeSequence = function(sequence){
         var cpy = sequence.slice();
         for( var i = 0; i < cpy.length; i++ ){
             if( typeof sequence[i] === 'string' ){
