@@ -121,7 +121,11 @@ var music = {};
         
         
     // time for scales and stuff
-    // 
+    // Scales are supposed to be ordered sequences
+    // Chords are supposed to be played all at once
+    // Maybe it makes sense to store scales not as #s of the notes
+    // but rather as the size of the steps between notes
+    // this would allow easy key-switching in many cases
     
     root.Scale = function( name, sequence ){
         this.name = name || "unnamed scale";
