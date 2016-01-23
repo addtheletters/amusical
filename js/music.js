@@ -81,6 +81,13 @@ Array.prototype.injectArray = function( index, arr ) {
         "♭":-1,
         "♮":0 // for completeness
     };
+    
+    root.PlayNote = function( midi_controller, channel, note, velocity, duration, delay ){
+        console.log(midi_controller);
+        midi_controller.setVolume(0, velocity);
+        midi_controller.noteOn(0, note, velocity, delay);
+        midi_controller.noteOff(0, note, delay + duration);
+    }
 
     root.ParseLetter = function( letr ){
         if(letr.length < 1){
@@ -114,8 +121,8 @@ Array.prototype.injectArray = function( index, arr ) {
             return "[Note: num(" + this.num + "), SPN("+ this.toSPN() +")]";// dur(" + this.duration + ")]";
         };
         
-        root.Note.prototype.play = function( channel, volume, duration, delay ){
-            playNote( channel, this.num, volume, duration, delay );
+        root.Note.prototype.play = function( controller, channel, volume, duration, delay ){
+            root.PlayNote( controller, channel, this.num, volume, duration, delay );
         };
           
         /** scientific pitch notation: https://en.wikipedia.org/wiki/Scientific_pitch_notation */
@@ -135,9 +142,9 @@ Array.prototype.injectArray = function( index, arr ) {
             return "[Chord: ("+name+")]";// dur(" + this.duration + ")]";
         };
         
-        root.Chord.prototype.play = function( channel, volume, duration, delay ){
+        root.Chord.prototype.play = function( controller, channel, volume, duration, delay ){
             for(var i = 0; i < this.tones.length; i++){
-                playNote( channel, this.tones[i], volume, duration, delay );
+               root.PlayNote( controller, channel, this.tones[i], volume, duration, delay );
             }
         };
 
@@ -236,45 +243,51 @@ Array.prototype.injectArray = function( index, arr ) {
             }
         }
     }
-    
-    
-        // TODO make this do what (playNode) does
         
-        // effect functions won't work like this
-        // are placeholder
-        root.MusicNode.prototype.effect = function(){
-            // play sound
-            if(this.value instanceof root.Note){
-                console.log(this.value);
+        root.MusicNode.prototype.play = function( controller, channel, volume ){
+            //console.log("beginning play of ", this);
+            if(this.domElement){
+                //console.log("lighten!");
+                //console.log(this.domElement);
+                this.domElement.classList.add("playing");
             }
-            else if( this.value instanceof Array ){
-                for(var i = 0; i < this.value.length; i++){
-                    this.value[i].effect();
-                }
+            
+            if( this.value instanceof Array ){
+                (function playSequential( nde, index){
+                    //console.log("playing ", nde, " index ", index);
+                    nde.value[index].play( controller, channel, volume );
+                    if( index < nde.value.length - 1 ){
+                        //console.log("set timeout for", nde, nde.value[index].getDuration() * 1000);
+                        setTimeout( function(){ playSequential(nde, index+1) }, nde.value[index].getDuration() * 1000 );
+                    }
+                })( this, 0 );
             }
+            else if(this.value instanceof music.Note){
+                //console.log("sound", this.value);
+                this.value.play( controller, channel, volume, this.getDuration(), 0);
+            }
+            
+            if(this.domElement){
+                var node = this;
+                setTimeout( function(){ node.domElement.classList.remove("playing"); }, this.getDuration() * 1000 );
+            }
+            //console.log("completed play of ", this);
         }
         
-        root.MusicNode.prototype.sequentialEffect = function(){
-            for(var i = 0; i < this.sequence.length; i++){
-                this.sequence[i].effect();
-            }
-        }
-
         root.MusicNode.prototype.getDuration = function(){
             return this.duration;
         }
         
-        // why did I have this function? it seems like it would be a terrible idea.
-        /*
-        MusicNode.prototype.setDuration = function(duration){
-            this.duration = duration;
-        }
-        */
         /*
         *	useSequence argument is for when this.sequence has been filled in
         *	for faster execution of certain functions
+        *   honestly though I've gotten this far without implementing it so I might as well just get rid of it
         */
         root.MusicNode.prototype.getInternalDuration = function(useSequence){
+            if(!useSequence){
+                console.log("unimplemented: why did you turn off useSequence");
+            }
+            
             if(this.value instanceof Array){
                 /*var temp = 0;
                 for(var i = 0; i < this.value.length; i++){

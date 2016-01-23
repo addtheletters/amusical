@@ -33,7 +33,8 @@ function renderNode( node, width, zI ){
             
             document.getElementById("infobox1").innerText = node.value;
             //playNote(0, node.value.num, 127, node.getDuration(), 0);
-            playNode(node, 0, 127);
+            console.log(MIDI);
+            node.play(MIDI, 0, 127);
         }
         ret.onmouseover = function(){
             ret.oldZI = ret.style.zIndex;

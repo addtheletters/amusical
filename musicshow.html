@@ -78,41 +78,6 @@
         newSection();
     }
     
-    function playNote( channel, note, velocity, duration, delay ){
-        MIDI.setVolume(0, velocity);
-        MIDI.noteOn(0, note, velocity, delay);
-        MIDI.noteOff(0, note, delay + duration);
-    }
-    
-    function playNode( node, channel, volume ){
-        //console.log("beginning play of ", node);
-        if(node.domElement){
-            //console.log("lighten!");
-            //console.log(node.domElement);
-            node.domElement.classList.add("playing");
-        }
-        
-        if( node.value instanceof Array ){
-            (function playSequential( nde, index){
-                //console.log("playing ", nde, " index ", index);
-                playNode( nde.value[index], channel, volume );
-                if( index < nde.value.length - 1 ){
-                    //console.log("set timeout for", nde, nde.value[index].getDuration() * 1000);
-                    setTimeout( function(){ playSequential(nde, index+1) }, nde.value[index].getDuration() * 1000 );
-                }
-            })( node, 0 );
-        }
-        else if(node.value instanceof music.Note){
-            //console.log("sound", node.value);
-            node.value.play(channel, volume, node.getDuration(), 0);
-        }
-        
-        if(node.domElement){
-            setTimeout( function(){ node.domElement.classList.remove("playing"); }, node.getDuration() * 1000 );
-        }
-        //console.log("completed play of ", node);
-    }
-    
     function loopToggle( cb ){
         //console.log("checkbox is", cb.checked);
         should_loop = cb.checked;
@@ -131,7 +96,7 @@
     
     function playTriggered(){
         clearTimeout(loop_timeout);
-        playNode(last_shown, 0, 127);
+        last_shown.play(MIDI, 0, 127);
         if( should_loop ){
             //console.log(last_shown.getDuration()*1000);
             loop_timeout = setTimeout(function(){playTriggered();}, last_shown.getDuration()*1000);
