@@ -83,17 +83,24 @@ Array.prototype.injectArray = function( index, arr ) {
     };
     
     root.PlayNote = function( midi_controller, channel, note, velocity, duration, delay ){
-        console.log(midi_controller);
+        //console.log(midi_controller);
         midi_controller.setVolume(0, velocity);
         midi_controller.noteOn(0, note, velocity, delay);
         midi_controller.noteOff(0, note, delay + duration);
-    }
+    };
 
     root.ParseLetter = function( letr ){
+        
+        if( typeof letr !== 'string' ){
+            console.debug("failed to parse non-string letter designation");
+            return letr;
+        }
+        
         if(letr.length < 1){
-            console.log("unable to parse letter notation");
+            console.debug("unable to parse letter notation (too short)");
             return;
         }
+        
         var base = letr[0];
         var accd = letr.slice(1);
         // supports multiple stacking accidentals
@@ -101,6 +108,30 @@ Array.prototype.injectArray = function( index, arr ) {
             return root.accidental_vals[acc] || 0;
         });
         return root.letter_vals[base] + modifier;
+    };
+    
+    root.LetterizeNumber = function( num ){
+        if( typeof num !== 'number' ){
+            console.debug("unable to letterize non-number");
+            return num;
+        }
+        return root.getNoteOrder()[mod(num, root.NUM_TONES)];
+    };
+    
+    root.NumberizeSequence = function(sequence){
+        var cpy = sequence.slice();
+        for( var i = 0; i < cpy.length; i++ ){
+            cpy[i] = root.ParseLetter(sequence[i]);
+        }
+        return cpy;
+    };
+    
+    root.LetterizeSequence = function(sequence){
+        var cpy = sequence.slice();
+        for( var i = 0; i < cpy.length; i++ ){
+            cpy[i] = root.LetterizeNumber(sequence[i]);
+        }
+        return cpy;
     };
 
     root.Note = function( arg ){
@@ -189,27 +220,29 @@ Array.prototype.injectArray = function( index, arr ) {
     };
         root.Scale.prototype.toString = function(){
             return "[Scale: (" + this.name + ") {" + root.LetterizeSequence( this.sequence ) + "}]";
-        }  
-
-    root.NumberizeSequence = function(sequence){
-        var cpy = sequence.slice();
-        for( var i = 0; i < cpy.length; i++ ){
-            if( typeof sequence[i] === 'string' ){
-                cpy[i] = root.ParseLetter(sequence[i]);
-            }
-        }
-        return cpy;
-    }
+        };
     
-    root.LetterizeSequence = function(sequence){
-        var cpy = sequence.slice();
-        for( var i = 0; i < cpy.length; i++ ){
-            if( typeof sequence[i] === 'number' ){
-                cpy[i] = root.getNoteOrder()[mod(sequence[i], root.NUM_TONES)];
+    root.ScaleClass = function( steps, name, namifier ){
+        this.name = name || "unnamed scale class";
+        this.nameFunc = namifier || function( sc, k ){ return root.LetterizeNumber(k) + " " + sc.name; };
+        this.steps = steps;
+    };
+        root.ScaleClass.prototype.getTones = function( baseKey ){
+            var relative_tones = [];
+            var curr_tone = baseKey || 0;
+            for( var i = 0; i < this.steps.length+1; i++ ){
+                relative_tones.push( curr_tone );
+                if( i < this.steps.length ){
+                    curr_tone += this.steps[i];
+                }
             }
-        }
-        return cpy;
-    }
+            return relative_tones;
+        };
+        
+        root.ScaleClass.prototype.buildScale = function( key ){
+            return new root.Scale( this.getTones(key), this.nameFunc(this, key) );
+        };
+    
     
     root.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
         new root.Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],  "chromatic 12 tone"), // chromatic (all 12 tones)
@@ -221,6 +254,13 @@ Array.prototype.injectArray = function( index, arr ) {
         new root.Scale(["D","F","G","A","C"],                   "pentatonic minor from D"),
         new root.Scale(["C","C#","F","G","A#"],                 "pentatonic insen from C"), // "japanese" mode
         new root.Scale(["D","Eb","G","Ab","C"],                 "pentatonic hirajoshi from D")
+    ];
+    
+    root.scaleClasses = [
+        new root.ScaleClass([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "chromatic", function(sc, k){return sc.name;}),
+        new root.ScaleClass([2, 2, 1, 2, 2, 2, 1], "major"),
+        new root.ScaleClass([2, 1, 2, 2, 1, 2, 2], "natural minor"),
+        new root.ScaleClass([2, 1, 2, 2, 1, 3, 1], "harmonic minor")
     ];
 
     root.MusicNode = function( duration, value, parent ){
