@@ -28,12 +28,10 @@ function renderNode( node, width, zI ){
         
         ret.classList.add("musicnote");
         ret.onclick = function(){
-            console.log("Clicked a node. Wow. What a terrible person.");
-            console.log(node.value);
+            //console.debug("Clicked a node. Wow. What a terrible person.");
+            //console.debug(node.value);
             
             document.getElementById("infobox1").innerText = node.value;
-            //playNote(0, node.value.num, 127, node.getDuration(), 0);
-            console.log(MIDI);
             node.play(MIDI, 0, 127);
         }
         ret.onmouseover = function(){
