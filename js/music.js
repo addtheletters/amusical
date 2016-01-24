@@ -169,6 +169,9 @@ Array.prototype.injectArray = function( index, arr ) {
         this.name = name || "unnamed chord";
         this.tones = lib.NumberizeSequence(tones) || [];
     };
+        lib.Chord.prototype.canFill = true;
+        lib.Chord.prototype.ordered = false;
+        
         lib.Chord.prototype.toString = function(){
             return "[Chord: ("+name+")]";// dur(" + this.duration + ")]";
         };
@@ -218,9 +221,14 @@ Array.prototype.injectArray = function( index, arr ) {
         this.name = name || "unnamed scale";
         this.sequence = lib.NumberizeSequence(sequence) || [];
     };
+        lib.Scale.prototype.canFill = true;
+        lib.Scale.prototype.ordered = true;
+        
         lib.Scale.prototype.toString = function(){
             return "[Scale: (" + this.name + ") {" + lib.LetterizeSequence( this.sequence ) + "}]";
         };
+    
+    // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
     
     lib.ScaleClass = function( steps, name, namifier ){
         this.name = name || "unnamed scale class";
@@ -239,8 +247,9 @@ Array.prototype.injectArray = function( index, arr ) {
             return relative_tones;
         };
         
-        lib.ScaleClass.prototype.buildScale = function( key ){
-            return new lib.Scale( this.getTones(key), this.nameFunc(this, key) );
+        lib.ScaleClass.prototype.buildScale = function( key, namifier ){
+            var useNameFunc = namifier || this.nameFunc;
+            return new lib.Scale( this.getTones(key), useNameFunc(this, key) );
         };
     
     
@@ -258,13 +267,11 @@ Array.prototype.injectArray = function( index, arr ) {
     
     lib.scaleClasses = [
         new lib.ScaleClass([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "chromatic", function(sc, k){return sc.name;}),
-        new lib.ScaleClass([2, 2, 1, 2, 2, 2, 1], "major"),
-        new lib.ScaleClass([2, 1, 2, 2, 1, 2, 2], "natural minor"),
-        new lib.ScaleClass([2, 1, 2, 2, 1, 3, 1], "harmonic minor")
+        new lib.ScaleClass([2, 2, 1, 2, 2, 2], "major"), // the final step is implied to be the return to the root / key of the scale
+        new lib.ScaleClass([2, 1, 2, 2, 1, 2], "natural minor"),
+        new lib.ScaleClass([2, 1, 2, 2, 1, 3], "harmonic minor")
     ];
     
-    // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
-
     lib.MusicNode = function( duration, value, parent ){
         this.duration = duration || null;
         this.parent = parent || null; // apprently naming things parent is a bad idea
@@ -528,12 +535,15 @@ Array.prototype.injectArray = function( index, arr ) {
     // algo goes top to bottom choosing a 'root' tone for node in *value* order
     // these root tones are assigned according to scales / chord sequences, chords can jump randomly but scales must be ordered?
     // then each child is gone into, and a similar process can occur using the assigned 'root' as the base for scale or chord choice
-    lib.ScaleTonalize = function( node, scales, chords ){
+    lib.ScaleTonalize = function( node, fillers ){
         if(node.sequence.length <= 0){
             console.debug("node is nontonalizable");
         }
-        for(var i = 0; i < node.sequence.length; i++){
-            
+        for(var i = 0; i < node.value.length; i++){
+            // fill node
+        }
+        for(var i = 0; i < node.value.length; i++){
+            // recur on children
         }
     };
  

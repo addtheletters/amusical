@@ -99,7 +99,7 @@
         last_shown.play(MIDI, 0, 127);
         if( should_loop ){
             //console.log(last_shown.getDuration()*1000);
-            loop_timeout = setTimeout(function(){playTriggered();}, last_shown.getDuration()*1000);
+            loop_timeout = setTimeout(playTriggered, last_shown.getDuration()*1000);
         }
     }
     
