@@ -92,12 +92,12 @@ Array.prototype.injectArray = function( index, arr ) {
     lib.ParseLetter = function( letr ){
         
         if( typeof letr !== 'string' ){
-            console.debug("failed to parse non-string letter designation");
+            console.debug("ParseLetter: non-string letter designation, returning original");
             return letr;
         }
         
         if(letr.length < 1){
-            console.debug("unable to parse letter notation (too short)");
+            console.debug("ParseLetter: unable to parse letter notation (too short)");
             return;
         }
         
@@ -148,6 +148,14 @@ Array.prototype.injectArray = function( index, arr ) {
             this.num = 60;
         }
     };
+        lib.Note.prototype.getNum = function(){
+            return this.num;
+        };
+        
+        lib.Note.prototype.setNum = function( n ){
+            this.num = n;
+        };
+    
         lib.Note.prototype.toString = function(){
             return "[Note: num(" + this.num + "), SPN("+ this.toSPN() +")]";// dur(" + this.duration + ")]";
         };
@@ -181,6 +189,10 @@ Array.prototype.injectArray = function( index, arr ) {
                lib.PlayNote( controller, channel, this.tones[i], volume, duration, delay );
             }
         };
+        
+        lib.Chord.prototype.getKey = function(){
+            return this.tones[0];
+        };
 
     lib.SPN = function( letr, octv ){
         /** includes accidental */
@@ -193,8 +205,8 @@ Array.prototype.injectArray = function( index, arr ) {
         };
         
         lib.SPN.prototype.fromNum = function( num ){
-            this.letter = music.getNoteOrder()[ mod(num, music.NUM_TONES) ];
-            this.octave = Math.floor( num / music.NUM_TONES ) + lib.ZERO_OCTAVE;
+            this.letter = lib.getNoteOrder()[ mod(num, lib.NUM_TONES) ];
+            this.octave = Math.floor( num / lib.NUM_TONES ) + lib.ZERO_OCTAVE;
             return this;
         };
         
@@ -227,7 +239,18 @@ Array.prototype.injectArray = function( index, arr ) {
         lib.Scale.prototype.toString = function(){
             return "[Scale: (" + this.name + ") {" + lib.LetterizeSequence( this.sequence ) + "}]";
         };
-    
+        
+        lib.Scale.prototype.getKey = function(){
+            return this.sequence[0];
+        };
+        
+        lib.Scale.prototype.pickTones = function( degrees ){
+            var tones = [];
+            for( var i = 0; i < degrees.length; i++ ){
+                tones.push( this.sequence[ mod( degrees[i], this.sequence.length ) ] );
+            }
+            return tones;
+        }
     // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
     
     lib.ScaleClass = function( steps, name, namifier ){
@@ -292,6 +315,9 @@ Array.prototype.injectArray = function( index, arr ) {
             }
         }
     }
+        lib.MusicNode.prototype.isSingular = function(){
+            return (this.value instanceof lib.Note) || (this.value instanceof lib.Chord);
+        }
         
         lib.MusicNode.prototype.play = function( controller, channel, volume ){
             //console.log("beginning play of ", this);
@@ -311,7 +337,7 @@ Array.prototype.injectArray = function( index, arr ) {
                     }
                 })( this, 0 );
             }
-            else if(this.value instanceof music.Note){
+            else if(this.value instanceof lib.Note){
                 //console.log("sound", this.value);
                 this.value.play( controller, channel, volume, this.getDuration(), 0);
             }
@@ -321,6 +347,47 @@ Array.prototype.injectArray = function( index, arr ) {
                 setTimeout( function(){ node.domElement.classList.remove("playing"); }, this.getDuration() * 1000 );
             }
             //console.log("completed play of ", this);
+        }
+        
+        lib.MusicNode.prototype.getKey = function(){
+            if( this.value instanceof lib.Note ){
+                return this.value.getNum();
+            }
+            else if(this.value instanceof lib.Chord){
+                return this.value.getKey();
+            }
+            else if(this.skey){
+                console.debug("MusicNode: getKey: retreived placeholder key");
+                return this.skey;
+            }
+            console.debug("MusicNode: getKey: no known key");
+            return;
+        }
+        
+        lib.MusicNode.prototype.setStructuralKey = function(k){
+            if( this.value ){
+                console.debug("MusicNode: setting placeholder key for already-valued node has no effect");
+                return;
+            }
+            if( this.skey ){
+                console.debug("MusicNode: placeholder key already posessed a value, overwriting", this.skey);
+                this.skey = k;
+            }
+            this.skey = k;
+        }
+        
+        lib.MusicNode.prototype.getFinalTone = function(){
+            if(this.isSingular()){
+                return this.getKey();
+            }
+            return this.sequence[this.sequence.length - 1].getKey();
+        }
+        
+        lib.MusicNode.prototype.getFirstTone = function(){
+            if(this.isSingular()){
+                return this.getKey();
+            }
+            return this.sequence[0].getKey();
         }
         
         lib.MusicNode.prototype.getDuration = function(){
@@ -334,7 +401,7 @@ Array.prototype.injectArray = function( index, arr ) {
         */
         lib.MusicNode.prototype.getInternalDuration = function(useSequence){
             if(!useSequence){
-                console.log("unimplemented: why did you turn off useSequence");
+                console.debug("MusicNode: getInternalDuration: useSequence should normally be turned on.");
             }
             
             if(this.value instanceof Array){
@@ -382,7 +449,7 @@ Array.prototype.injectArray = function( index, arr ) {
                 }
             }
             else{
-                //console.log("MusicNode (addInnerNode): value is not array.");
+                console.debug("MusicNode (addInnerNode): value is not array; could not add child.");
             }
         }
 

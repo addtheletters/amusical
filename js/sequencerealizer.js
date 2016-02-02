@@ -46,7 +46,7 @@ function renderNode( node, width, zI ){
         var lbl2 = document.createElement("span");
         lbl1.classList.add("musiclabel");
         lbl2.classList.add("musiclabel");
-        lbl1.appendChild(document.createTextNode(node.value.num));
+        lbl1.appendChild(document.createTextNode(node.value.getNum()));
         lbl2.appendChild(document.createTextNode(node.value.toSPN()));
         ret.appendChild(lbl1);
         ret.appendChild(document.createElement("br"));
