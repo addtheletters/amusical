@@ -16,66 +16,22 @@
     <script src="js/colors.js">/* color functions */</script>
     <script src="js/plotting.js">/* extremely simple canvas drawing */</script>
     <script src="js/sequencerealizer.js">/* rendering node as html */</script>
+    <script src="js/musiccanvas.js">/* showing nodes on a canvas */</script>
     <link rel="stylesheet" type="text/css" href="css/realized.css">
     <link rel="stylesheet" type="text/css" href="css/musiclabels.css"> 
     
     <script type="text/javascript">
     
-    
     var titles = ["musical", "a muse", "amusing", "a-musical", "amusante", "a muse kale", "a moose king", "aim use sling", "ah moose aunt"];
 
     var canvasID = "drawspace";
-    var leCanvas;
-    var leContext;
 
     var dispnodes = [];
     var last_shown;
     var loop_timeout;
     var should_loop;
     
-    var colors = getColorsLib();
-    
-    var BASEPLATE_STYLE = "gray";
-    var DEFAULT_STYLE = "white";
-    var DEFAULT_TEXT_WIDTH = 50;
-    var FONT_SIZE = 15;
-    var DEFAULT_FONT = FONT_SIZE + "px Monospace";
-    var DEFAULT_TEXT_FILL = "white";
-    var DEFAULT_TEXT_STROKE = "rgba(0, 0, 0, 0)";
-
-    function showNode(node, x, y, width, height, yshrink, childfunction) {
-    	yshrink = yshrink || 10;
-    	//console.log("showNode: plotting node (recursive)");
-        plot.Rect(leContext, x, y, width, height, getStyle(node), "black", 1); // baseplate
-        if( node.value instanceof Array ){
-			//console.log("showNode: node value is an array");
-			var lastStartPos = 0;
-			for(var i = 0; i < node.value.length; i++){
-				var subdur = node.value[i].getDuration();
-				var subwidth = width * subdur / node.getDuration();
-				showNode(node.value[i], x + lastStartPos, y+yshrink, subwidth, height-1*yshrink, yshrink, childfunction);
-				lastStartPos += subwidth;
-			}
-		}
-        else if(node.value instanceof music.Note){
-            plot.Text(node.value.num, leContext, x + 3, y + yshrink, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
-            plot.Text(node.value.toSPN(), leContext, x + 3, y + yshrink + FONT_SIZE, DEFAULT_TEXT_WIDTH, DEFAULT_FONT, DEFAULT_TEXT_FILL, DEFAULT_TEXT_STROKE);
-        }
-        return true;
-    }
-
-    function getStyle(node, level) {
-    	//level = level || 0;
-        if (node.value instanceof music.Note) {
-            return colors.getStyleFromRGB(colors.HSVtoRGB(getIndicHSV(node.value)));
-        }
-        else if (node.value instanceof Array) {
-        	if(!level){
-        		return BASEPLATE_STYLE;
-        	}
-        }
-    	return DEFAULT_STYLE;
-    }
+    var colors = colors || getColorsLib();
     
     function getIndicHSV(note){
         intensity = ( Math.pow( note.toSPN().octave, 1.5) / Math.pow(4, 1.5));
@@ -122,41 +78,6 @@
         newSection();
     }
     
-    function playNote( channel, note, velocity, duration, delay ){
-        MIDI.setVolume(0, velocity);
-        MIDI.noteOn(0, note, velocity, delay);
-        MIDI.noteOff(0, note, delay + duration);
-    }
-    
-    function playNode( node, channel, volume ){
-        //console.log("beginning play of ", node);
-        if(node.domElement){
-            //console.log("lighten!");
-            //console.log(node.domElement);
-            node.domElement.classList.add("playing");
-        }
-        
-        if( node.value instanceof Array ){
-            (function playSequential( nde, index){
-                //console.log("playing ", nde, " index ", index);
-                playNode( nde.value[index], channel, volume );
-                if( index < nde.value.length - 1 ){
-                    //console.log("set timeout for", nde, nde.value[index].getDuration() * 1000);
-                    setTimeout( function(){ playSequential(nde, index+1) }, nde.value[index].getDuration() * 1000 );
-                }
-            })( node, 0 );
-        }
-        else if(node.value instanceof music.Note){
-            //console.log("sound", node.value);
-            playNote(channel, node.value.num, volume, node.getDuration(), 0);
-        }
-        
-        if(node.domElement){
-            setTimeout( function(){ node.domElement.classList.remove("playing"); }, node.getDuration() * 1000 );
-        }
-        //console.log("completed play of ", node);
-    }
-    
     function loopToggle( cb ){
         //console.log("checkbox is", cb.checked);
         should_loop = cb.checked;
@@ -175,10 +96,10 @@
     
     function playTriggered(){
         clearTimeout(loop_timeout);
-        playNode(last_shown, 0, 127);
+        last_shown.play(MIDI, 0, 127);
         if( should_loop ){
             //console.log(last_shown.getDuration()*1000);
-            loop_timeout = setTimeout(function(){playTriggered();}, last_shown.getDuration()*1000);
+            loop_timeout = setTimeout(playTriggered, last_shown.getDuration()*1000);
         }
     }
     
@@ -194,8 +115,8 @@
 
     function newSection() {
         var noda = music.BuildRhythm(4, music.PATTERNS, 10, 5);
-        var sca = music.scales.randomChoice();
-        music.Tonalize(noda, sca.sequence);
+        var sca = music.scaleClasses.randomChoice().buildScale(Math.floor(Math.random()*music.getNoteOrder().length));
+        music.Tonalize(noda, sca.pickTones());
         showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
         showInfo(sca, 0); // make scales a js object so they can be named / categorized?
@@ -231,7 +152,8 @@
         <hr>
         <div id=render></div>
         <hr>
-        <canvas id="drawspace" width="1200" height="200" style="border: 1px solid black"></canvas>
+        <canvas id="drawspace" width="1050" height="200" style="border: 1px solid black"></canvas>
     </div>
+    <span id="version" >v0.03</span>
 </body>
 </html>
