@@ -177,7 +177,6 @@ Array.prototype.injectArray = function( index, arr ) {
         this.name = name || "unnamed chord";
         this.tones = lib.NumberizeSequence(tones) || [];
     };
-        lib.Chord.prototype.canFill = true;
         lib.Chord.prototype.ordered = false;
         
         lib.Chord.prototype.toString = function(){
@@ -233,7 +232,6 @@ Array.prototype.injectArray = function( index, arr ) {
         this.name = name || "unnamed scale";
         this.sequence = lib.NumberizeSequence(sequence) || [];
     };
-        lib.Scale.prototype.canFill = true;
         lib.Scale.prototype.ordered = true;
         
         lib.Scale.prototype.toString = function(){
@@ -245,12 +243,19 @@ Array.prototype.injectArray = function( index, arr ) {
         };
         
         lib.Scale.prototype.pickTones = function( degrees ){
+            if(!degrees){
+                return this.sequence;
+            }
             var tones = [];
             for( var i = 0; i < degrees.length; i++ ){
+                if(degrees[i] > this.sequence.length){
+                    console.debug("Scale: pickTones: specified degree exceeds defined scale size; looping");
+                }
                 tones.push( this.sequence[ mod( degrees[i], this.sequence.length ) ] );
             }
             return tones;
         }
+        
     // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
     
     lib.ScaleClass = function( steps, name, namifier ){
@@ -315,8 +320,8 @@ Array.prototype.injectArray = function( index, arr ) {
             }
         }
     }
-        lib.MusicNode.prototype.isSingular = function(){
-            return (this.value instanceof lib.Note) || (this.value instanceof lib.Chord);
+        lib.MusicNode.prototype.isStructural = function(){
+            return !((this.value instanceof lib.Note) || (this.value instanceof lib.Chord));
         }
         
         lib.MusicNode.prototype.play = function( controller, channel, volume ){
@@ -357,34 +362,38 @@ Array.prototype.injectArray = function( index, arr ) {
                 return this.value.getKey();
             }
             else if(this.skey){
-                console.debug("MusicNode: getKey: retreived placeholder key");
+                console.debug("MusicNode: getKey: retreived structural key");
                 return this.skey;
             }
             console.debug("MusicNode: getKey: no known key");
             return;
         }
         
+        /**
+         * "Structural Key" refers to a tone that is assigned to a structural node 
+         * (one in the tree without an assigned sound effect but which has children/parents)
+         * to allow melody generation to have references on all the necessary levels of recursion.
+         */
         lib.MusicNode.prototype.setStructuralKey = function(k){
-            if( this.value ){
-                console.debug("MusicNode: setting placeholder key for already-valued node has no effect");
+            if( !this.isStructural() ){
+                console.debug("MusicNode: setting structural key for non-structural node has no effect (node is already tonal)");
                 return;
             }
             if( this.skey ){
-                console.debug("MusicNode: placeholder key already posessed a value, overwriting", this.skey);
-                this.skey = k;
+                console.debug("MusicNode: structural key already posessed a value, overwriting", this.skey);
             }
             this.skey = k;
         }
         
         lib.MusicNode.prototype.getFinalTone = function(){
-            if(this.isSingular()){
+            if(!this.isStructural()){
                 return this.getKey();
             }
             return this.sequence[this.sequence.length - 1].getKey();
         }
         
         lib.MusicNode.prototype.getFirstTone = function(){
-            if(this.isSingular()){
+            if(!this.isStructural()){
                 return this.getKey();
             }
             return this.sequence[0].getKey();
@@ -480,6 +489,29 @@ Array.prototype.injectArray = function( index, arr ) {
         }
         lib.MusicNode.prototype.FillByPattern = function(pattern, noReSeq){
             return lib.FillByPattern(this, pattern, noReSeq);
+        }
+        
+        lib.MusicNode.prototype.Tune = function( tone ){
+            if( this.isStructural() ){
+                this.setStructuralKey(tone);
+            }
+            else{
+                // TODO this
+            }
+        }
+        
+        lib.MusicNode.prototype.ToneFill = function(filler){
+            if(!(this.value instanceof Array)){
+                console.debug("MusicNode: ToneFill: node's value was not tonalizable");
+            }
+            if( filler.ordered ){
+                for( var i = 0; i < this.value.length; i++){
+                    this.value[i].Tune(); // TODO this
+                }   
+            }
+            else{
+                
+            }
         }
 
         /*
@@ -606,11 +638,11 @@ Array.prototype.injectArray = function( index, arr ) {
         if(node.sequence.length <= 0){
             console.debug("node is nontonalizable");
         }
-        for(var i = 0; i < node.value.length; i++){
-            // fill node
-        }
+        var filler = fillers.randomChoice();
+        node.ToneFill(filler);
         for(var i = 0; i < node.value.length; i++){
             // recur on children
+            lib.ScaleTonalize( node.value[i], fillers);//fillers.splice( fillers.indexOf(filler), 1 ) );
         }
     };
  
