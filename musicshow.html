@@ -115,8 +115,8 @@
 
     function newSection() {
         var noda = music.BuildRhythm(4, music.PATTERNS, 10, 5);
-        var sca = music.scales.randomChoice();
-        music.Tonalize(noda, sca.sequence);
+        var sca = music.scaleClasses.randomChoice().buildScale(Math.floor(Math.random()*music.getNoteOrder().length));
+        music.Tonalize(noda, sca.pickTones());
         showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
         showInfo(sca, 0); // make scales a js object so they can be named / categorized?
@@ -154,6 +154,6 @@
         <hr>
         <canvas id="drawspace" width="1050" height="200" style="border: 1px solid black"></canvas>
     </div>
-    <span id="version" >v0.02</span>
+    <span id="version" >v0.03</span>
 </body>
 </html>

@@ -90,17 +90,14 @@ Array.prototype.injectArray = function( index, arr ) {
     };
 
     lib.ParseLetter = function( letr ){
-        
         if( typeof letr !== 'string' ){
             console.debug("ParseLetter: non-string letter designation, returning original");
             return letr;
         }
-        
         if(letr.length < 1){
             console.debug("ParseLetter: unable to parse letter notation (too short)");
             return;
         }
-        
         var base = letr[0];
         var accd = letr.slice(1);
         // supports multiple stacking accidentals
@@ -172,27 +169,7 @@ Array.prototype.injectArray = function( index, arr ) {
         lib.Note.prototype.fromSPN = function( spn ){
             this.num = spn.toNum();
         };
-    
-    lib.Chord = function( tones, name ){
-        this.name = name || "unnamed chord";
-        this.tones = lib.NumberizeSequence(tones) || [];
-    };
-        lib.Chord.prototype.ordered = false;
         
-        lib.Chord.prototype.toString = function(){
-            return "[Chord: ("+name+")]";// dur(" + this.duration + ")]";
-        };
-        
-        lib.Chord.prototype.play = function( controller, channel, volume, duration, delay ){
-            for(var i = 0; i < this.tones.length; i++){
-               lib.PlayNote( controller, channel, this.tones[i], volume, duration, delay );
-            }
-        };
-        
-        lib.Chord.prototype.getKey = function(){
-            return this.tones[0];
-        };
-
     lib.SPN = function( letr, octv ){
         /** includes accidental */
         this.letter = letr || "C";
@@ -220,6 +197,55 @@ Array.prototype.injectArray = function( index, arr ) {
             return this;
         };
         
+    lib.ToneGroup = function( tones, name, tid ){
+        this.name   = name || "unnamed tone group";
+        this.tones  = lib.NumberizeSequence(tones) || [];
+        this.type_id= tid || "ToneGroup";
+    };
+        lib.ToneGroup.prototype.toString = function(){
+            return "["+this.type_id+": ("+this.name+") {" + lib.LetterizeSequence( this.tones ) + "}]";// dur(" + this.duration + ")]";
+        };
+        
+        lib.ToneGroup.prototype.getKey = function(){
+            return this.tones[0];
+        };
+        
+        lib.ToneGroup.prototype.pickTones = function( degrees ){
+            if(!degrees){
+                return this.tones;
+            }
+            var tns = [];
+            for( var i = 0; i < degrees.length; i++ ){
+                if(degrees[i] > this.tones.length){
+                    console.debug(this.type_id, "pickTones: specified degree exceeds defined scale size; looping");
+                }
+                tns.push( this.tones[ mod( degrees[i], this.tones.length ) ] );
+            }
+            return tns;
+        }
+    
+    lib.Chord = function( tones, name ){
+        lib.ToneGroup.call(this, tones, name || "unnamed chord", "Chord");
+    };
+        lib.Chord.prototype = Object.create(lib.ToneGroup.prototype);
+        lib.Chord.prototype.constructor = lib.Chord;
+        
+        lib.Chord.prototype.ordered = false;
+        
+        lib.Chord.prototype.play = function( controller, channel, volume, duration, delay ){
+            for(var i = 0; i < this.tones.length; i++){
+               lib.PlayNote( controller, channel, this.tones[i], volume, duration, delay );
+            }
+        };
+        
+    lib.Scale = function( sequence, name ){
+        lib.ToneGroup.call(this, sequence, name || "unnamed scale", "Scale");
+    };
+        lib.Scale.prototype = Object.create(lib.ToneGroup.prototype);
+        lib.Scale.prototype.constructor = lib.Scale;
+        
+        lib.Scale.prototype.ordered = true;
+        
         
     // time for scales and stuff
     // Scales are supposed to be ordered sequences
@@ -228,34 +254,7 @@ Array.prototype.injectArray = function( index, arr ) {
     // but rather as the size of the steps between notes
     // this would allow easy key-switching in many cases
     
-    lib.Scale = function( sequence, name ){
-        this.name = name || "unnamed scale";
-        this.sequence = lib.NumberizeSequence(sequence) || [];
-    };
-        lib.Scale.prototype.ordered = true;
-        
-        lib.Scale.prototype.toString = function(){
-            return "[Scale: (" + this.name + ") {" + lib.LetterizeSequence( this.sequence ) + "}]";
-        };
-        
-        lib.Scale.prototype.getKey = function(){
-            return this.sequence[0];
-        };
-        
-        lib.Scale.prototype.pickTones = function( degrees ){
-            if(!degrees){
-                return this.sequence;
-            }
-            var tones = [];
-            for( var i = 0; i < degrees.length; i++ ){
-                if(degrees[i] > this.sequence.length){
-                    console.debug("Scale: pickTones: specified degree exceeds defined scale size; looping");
-                }
-                tones.push( this.sequence[ mod( degrees[i], this.sequence.length ) ] );
-            }
-            return tones;
-        }
-        
+    
     // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
     
     lib.ScaleClass = function( steps, name, namifier ){
