@@ -210,6 +210,12 @@ Array.prototype.injectArray = function( index, arr ) {
             return this.tones[0];
         };
         
+        // TODO test
+        lib.ToneGroup.prototype.locateTone = function( tn ){
+            return this.tones.indexOf(tn);
+        };
+        
+        // TODO test
         lib.ToneGroup.prototype.pickTones = function( degrees ){
             if(!degrees){
                 return this.tones;
@@ -222,6 +228,18 @@ Array.prototype.injectArray = function( index, arr ) {
                 tns.push( this.tones[ mod( degrees[i], this.tones.length ) ] );
             }
             return tns;
+        }
+        
+        // start: index of start, not starting val
+        // todo: polymorphism in scale to make the 'looping' with mod
+        // change octave up/down if exceeding / going under bounds of tone group
+        // depending on whether scale is ascending or descending
+        // scale should have a property that says ascending/descending 
+        lib.ToneGroup.prototype.continueFrom = function( start, amount ){
+            var tns = [];
+            for( var i = 0; i < amount; i++){
+                tns.push( this.tones[ mod(start + i, this.tones.length) ] );
+            }
         }
     
     lib.Chord = function( tones, name ){
@@ -313,14 +331,18 @@ Array.prototype.injectArray = function( index, arr ) {
                 //console.log("MusicNode: value is a note");
                 this.sequence.push(this);
             }
-            else if( this.value instanceof Array ){
+            else if( !(this.isLeaf()) ){
                 //console.log("MusicNode: value is an array");
                 this.reSequence();
             }
         }
     }
-        lib.MusicNode.prototype.isStructural = function(){
+        lib.MusicNode.prototype.isSingular = function(){
             return !((this.value instanceof lib.Note) || (this.value instanceof lib.Chord));
+        }
+        
+        lib.MusicNode.prototype.isLeaf = function(){
+            return !(this.value instanceof Array);
         }
         
         lib.MusicNode.prototype.play = function( controller, channel, volume ){
@@ -331,7 +353,7 @@ Array.prototype.injectArray = function( index, arr ) {
                 this.domElement.classList.add("playing");
             }
             
-            if( this.value instanceof Array ){
+            if( !(this.isLeaf()) ){
                 (function playSequential( nde, index){
                     //console.log("playing ", nde, " index ", index);
                     nde.value[index].play( controller, channel, volume );
@@ -374,8 +396,8 @@ Array.prototype.injectArray = function( index, arr ) {
          * to allow melody generation to have references on all the necessary levels of recursion.
          */
         lib.MusicNode.prototype.setStructuralKey = function(k){
-            if( !this.isStructural() ){
-                console.debug("MusicNode: setting structural key for non-structural node has no effect (node is already tonal)");
+            if( !this.isSingular() ){
+                console.debug("MusicNode: setting structural key for singular node has no effect (node is already tonal)");
                 return;
             }
             if( this.skey ){
@@ -385,14 +407,14 @@ Array.prototype.injectArray = function( index, arr ) {
         }
         
         lib.MusicNode.prototype.getFinalTone = function(){
-            if(!this.isStructural()){
+            if(!this.isSingular()){
                 return this.getKey();
             }
             return this.sequence[this.sequence.length - 1].getKey();
         }
         
         lib.MusicNode.prototype.getFirstTone = function(){
-            if(!this.isStructural()){
+            if(!this.isSingular()){
                 return this.getKey();
             }
             return this.sequence[0].getKey();
@@ -412,7 +434,7 @@ Array.prototype.injectArray = function( index, arr ) {
                 console.debug("MusicNode: getInternalDuration: useSequence should normally be turned on.");
             }
             
-            if(this.value instanceof Array){
+            if(!(this.isLeaf())){
                 /*var temp = 0;
                 for(var i = 0; i < this.value.length; i++){
                     temp += this.value[i].getDuration();
@@ -446,7 +468,7 @@ Array.prototype.injectArray = function( index, arr ) {
             if(!this.value){
                 this.value = [];
             }
-            if(this.value instanceof Array){
+            if(!(this.isLeaf())){
                 node.parent = this;
                 this.value.push(node);
                 if(!dNSeq){
@@ -490,26 +512,40 @@ Array.prototype.injectArray = function( index, arr ) {
             return lib.FillByPattern(this, pattern, noReSeq);
         }
         
+        // TODO test
         lib.MusicNode.prototype.Tune = function( tone ){
-            if( this.isStructural() ){
+            if( !this.isLeaf() ){
                 this.setStructuralKey(tone);
             }
             else{
-                // TODO this
+                // this.value should be non-array. perhaps also empty array? though that implies intent to fill later
+                this.value = new lib.Note( tone );
             }
         }
         
-        lib.MusicNode.prototype.ToneFill = function(filler){
-            if(!(this.value instanceof Array)){
-                console.debug("MusicNode: ToneFill: node's value was not tonalizable");
+        // TODO test
+        lib.MusicNode.prototype.ToneFill = function(filler, noRandomDuplicates){
+            if( this.isLeaf() ){
+                console.debug("MusicNode: ToneFill: node is a leaf, filling with filler key");
+                this.Tune(filler.getKey());
             }
+            
+            var tns;
             if( filler.ordered ){
+                tns = filler.continueFrom( filler.locateTone(this.value.getKey()), this.value.length  );
                 for( var i = 0; i < this.value.length; i++){
-                    this.value[i].Tune(); // TODO this
-                }   
+                    this.value[i].Tune( tns[ mod(i, tns.length) ] ); // mod here should not be necessary
+                }
             }
             else{
-                
+                tns = filler.pickTones();
+                for( var i = 0; i < this.value.length; i++){
+                    var choice = tns.randomChoice();
+                    if( noRandomDuplicates ){
+                        tns.splice( tns.indexOf(choice), 1); // option to disallow duplicate choices
+                    }
+                    this.value[i].Tune( choice );
+                }
             }
         }
 
@@ -523,7 +559,7 @@ Array.prototype.injectArray = function( index, arr ) {
             var stack = [this];
             while(stack.length > 0){
                 var node = stack.pop();
-                if(!(node.value instanceof Array)){
+                if(node.isLeaf()){
                     if(!(node.value instanceof lib.Note)){
                         //console.log("MusicNode (getSLList): Tried to get leaves / as leaf an unset node.");
                     }
