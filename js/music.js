@@ -130,6 +130,10 @@ Array.prototype.injectArray = function( index, arr ) {
         }
         return cpy;
     };
+    
+    lib.TonesEquivalent = function( t1, t2 ){
+        return mod(t1, lib.getNoteOrder().length) === mod(t2, lib.getNoteOrder().length);
+    };
 
     lib.Note = function( arg ){
         if( typeof arg === 'string' ){
@@ -216,6 +220,9 @@ Array.prototype.injectArray = function( index, arr ) {
         };
         
         // TODO test
+        // notice that the root, normally notated degree 1, corresponds to
+        // an argument given of zero
+        // a perfect fifth corresponds to a degree given of 4
         lib.ToneGroup.prototype.pickTones = function( degrees ){
             if(!degrees){
                 return this.tones;
@@ -228,7 +235,7 @@ Array.prototype.injectArray = function( index, arr ) {
                 tns.push( this.tones[ mod( degrees[i], this.tones.length ) ] );
             }
             return tns;
-        }
+        };
         
         // start: index of start, not starting val
         // todo: polymorphism in scale to make the 'looping' with mod
@@ -240,7 +247,7 @@ Array.prototype.injectArray = function( index, arr ) {
             for( var i = 0; i < amount; i++){
                 tns.push( this.tones[ mod(start + i, this.tones.length) ] );
             }
-        }
+        };
     
     lib.Chord = function( tones, name ){
         lib.ToneGroup.call(this, tones, name || "unnamed chord", "Chord");
@@ -258,6 +265,11 @@ Array.prototype.injectArray = function( index, arr ) {
         
     lib.Scale = function( sequence, name ){
         lib.ToneGroup.call(this, sequence, name || "unnamed scale", "Scale");
+        // if the incoming tone sequence ends with a repeat of the first tone, remove the repeat
+        if( lib.TonesEquivalent( this.tones[0], this.tones[this.tones.length-1]) ){
+            console.debug("Scale: constructor found equivalent first and final tones; truncating for consistency");
+            this.tones.splice(this.tones.length-1, 1);
+        }
     };
         lib.Scale.prototype = Object.create(lib.ToneGroup.prototype);
         lib.Scale.prototype.constructor = lib.Scale;
@@ -275,11 +287,26 @@ Array.prototype.injectArray = function( index, arr ) {
     
     // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
     
-    lib.ScaleClass = function( steps, name, namifier ){
-        this.name = name || "unnamed scale class";
+    lib.TGClass = function( intervals, name, namifier){
+        this.intervals = intervals;
+        this.name = name || "unnamed tone group class";
         this.nameFunc = namifier || function( sc, k ){ return lib.LetterizeNumber(k) + " " + sc.name; };
-        this.steps = steps;
     };
+        lib.TGClass.getIntervals = function( shift ){
+            var ivs = [];
+            for(var i = 0; i < this.intervals.length; i++){
+                ivs.push( this.intervals[i] + shift );
+            }
+            return ivs;
+        }
+    
+    lib.ScaleClass = function( steps, name, namifier ){
+        this.steps = steps;
+        lib.TGClass.call(this, this.getTones(), name || "unnamed scale class", namifier);
+    };
+        lib.ScaleClass.prototype = Object.create(lib.TGClass.prototype);
+        lib.ScaleClass.prototype.constructor = lib.ScaleClass;
+        
         lib.ScaleClass.prototype.getTones = function( baseKey ){
             var relative_tones = [];
             var curr_tone = baseKey || 0;
@@ -296,7 +323,12 @@ Array.prototype.injectArray = function( index, arr ) {
             var useNameFunc = namifier || this.nameFunc;
             return new lib.Scale( this.getTones(key), useNameFunc(this, key) );
         };
-    
+        
+    lib.ChordClass = function( semitones, name, namifier ){
+        lib.TGClass.call(this, semitones, name || "unnamed chord class", namifier);
+    };
+        lib.ChordClass.prototype = Object.create(lib.TGClass.prototype);
+        lib.ChordClass.prototype.constructor = lib.ChordClass;
     
     lib.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
         new lib.Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],  "chromatic 12 tone"), // chromatic (all 12 tones)
@@ -541,7 +573,7 @@ Array.prototype.injectArray = function( index, arr ) {
                 tns = filler.pickTones();
                 for( var i = 0; i < this.value.length; i++){
                     var choice = tns.randomChoice();
-                    if( noRandomDuplicates ){
+                    if( noRandomDuplicates && tns.length > 1 ){
                         tns.splice( tns.indexOf(choice), 1); // option to disallow duplicate choices
                     }
                     this.value[i].Tune( choice );
@@ -576,8 +608,8 @@ Array.prototype.injectArray = function( index, arr ) {
     // BPM = beats per measure
     // beatVal = 1/note val, (quarter, eighth)
 
-    lib.usableBeatVals = [ 1, 1/2, 1/4, 1/8, 1/16 ];
-    lib.usableBPM = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
+    //lib.usableBeatVals = [ 1, 1/2, 1/4, 1/8, 1/16 ];
+    //lib.usableBPM = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
 
     lib.PATTERNS = [
         [1, 1, 1, 1],   // this one shouldn't even be necessary
