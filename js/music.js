@@ -204,7 +204,7 @@ Array.prototype.injectArray = function( index, arr ) {
     lib.ToneGroup = function( tones, name, tid ){
         this.name   = name || "unnamed tone group";
         this.tones  = lib.NumberizeSequence(tones) || [];
-        this.type_id= tid || "ToneGroup";
+        this.type_id  = tid || "ToneGroup";
     };
         lib.ToneGroup.prototype.toString = function(){
             return "["+this.type_id+": ("+this.name+") {" + lib.LetterizeSequence( this.tones ) + "}]";// dur(" + this.duration + ")]";
@@ -213,6 +213,10 @@ Array.prototype.injectArray = function( index, arr ) {
         lib.ToneGroup.prototype.getKey = function(){
             return this.tones[0];
         };
+        
+        // lib.ToneGroup.prototype.getReverse = function(){
+        //     return new lib.ToneGroup( this.reverser(this.tones), this.name + " reversed", this.type_id );  
+        // };
         
         // TODO test
         lib.ToneGroup.prototype.locateTone = function( tn ){
@@ -249,6 +253,10 @@ Array.prototype.injectArray = function( index, arr ) {
             }
         };
     
+    lib.ToneGroup.analyzeOctave = function( sequence ){
+        
+    };
+    
     lib.Chord = function( tones, name ){
         lib.ToneGroup.call(this, tones, name || "unnamed chord", "Chord");
     };
@@ -265,6 +273,7 @@ Array.prototype.injectArray = function( index, arr ) {
         
     lib.Scale = function( sequence, name ){
         lib.ToneGroup.call(this, sequence, name || "unnamed scale", "Scale");
+        
         // if the incoming tone sequence ends with a repeat of the first tone, remove the repeat
         if( lib.TonesEquivalent( this.tones[0], this.tones[this.tones.length-1]) ){
             console.debug("Scale: constructor found equivalent first and final tones; truncating for consistency");
@@ -275,7 +284,34 @@ Array.prototype.injectArray = function( index, arr ) {
         lib.Scale.prototype.constructor = lib.Scale;
         
         lib.Scale.prototype.ordered = true;
+    
+    lib.ToneGroup.DIRECTION = Object.freeze({
+        STRICT_ASCEND   : {value:2, name:"Ascending Strictly"}, // every note increases in pitch
+        STRICT_DESCEND  : {value:-2, name:"Descending Strictly"}, // every note decreases in pitch
+        LOOSE_ASCEND    : {value:1, name:"Ascending Loosely"}, // 2/3 majority of notes are increasing in pitch
+        LOOSE_DESCEND   : {value:-1, name:"Descending Loosely"}, // 2/3 majority of notes are decreasing in pitch
+        INDETERMINATE   : {value:0, name:"Indeterminate"} // no strict or general pattern to tone changes
+    });
+    
+    lib.ToneGroup.verifyDir = function( sequence ){
+        var uptune  = 0;
+        var dwntune = 0;
+        var neutral = 0;
+        for( var i = 1; i < sequence.length; i++ ){
+            var tone_delta = sequence[i] - sequence[i-1];
+            if( tone_delta > 0) uptune ++;
+            if( tone_delta > 0) dwntune ++;
+            if( tone_delta == 0) neutral ++;
+        }
+        if(neutral > 0){
+            console.debug("Scale: verifyDirection: scale had elements of no variation from the previous, count:", neutral);
+        }   
+    }
+    
+    // check if ends on same octave as start, reports how many octaves are spanned and in what direction
+    lib.ToneGroup.verifyOctave = function( sequence ){
         
+    }
         
     // time for scales and stuff
     // Scales are supposed to be ordered sequences
@@ -298,10 +334,10 @@ Array.prototype.injectArray = function( index, arr ) {
                 ivs.push( this.intervals[i] + shift );
             }
             return ivs;
-        }
-    
+        };
+        
     lib.ScaleClass = function( steps, name, namifier ){
-        this.steps = steps;
+        this.steps  = steps;
         lib.TGClass.call(this, this.getTones(), name || "unnamed scale class", namifier);
     };
         lib.ScaleClass.prototype = Object.create(lib.TGClass.prototype);
