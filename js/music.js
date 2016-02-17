@@ -286,29 +286,55 @@ Array.prototype.injectArray = function( index, arr ) {
         lib.Scale.prototype.ordered = true;
     
     lib.ToneGroup.DIRECTION = Object.freeze({
-        STRICT_ASCEND   : {value:2, name:"Ascending Strictly"}, // every note increases in pitch
-        STRICT_DESCEND  : {value:-2, name:"Descending Strictly"}, // every note decreases in pitch
-        LOOSE_ASCEND    : {value:1, name:"Ascending Loosely"}, // 2/3 majority of notes are increasing in pitch
-        LOOSE_DESCEND   : {value:-1, name:"Descending Loosely"}, // 2/3 majority of notes are decreasing in pitch
-        INDETERMINATE   : {value:0, name:"Indeterminate"} // no strict or general pattern to tone changes
+        STRICT_ASCEND   : {value:2, name:"Ascending",   strictness:"Strict"}, // every note increases in pitch
+        STRICT_DESCEND  : {value:-2, name:"Descending", strictness:"Strict"}, // every note decreases in pitch
+        LOOSE_ASCEND    : {value:1, name:"Ascending",   strictness:"Loose"}, // 2/3 majority of notes are increasing in pitch
+        LOOSE_DESCEND   : {value:-1, name:"Descending", strictness:"Loose"}, // 2/3 majority of notes are decreasing in pitch
+        INDETERMINATE   : {value:0, name:"Indeterminate", strictness:"None"} // no strict or general pattern to tone changes
     });
     
-    lib.ToneGroup.verifyDir = function( sequence ){
+    // TODO test and do something useful
+    lib.ToneGroup.verifyDir = function( sequence, loose_cutoff ){
+        if(typeof sequence !== 'Array'){
+            console.debug("ToneGroup.verifyDir: sequence was not an array");
+        }
+        
+        var lsns = loose_cutoff || 0.66;
         var uptune  = 0;
-        var dwntune = 0;
+        var downtune = 0;
         var neutral = 0;
         for( var i = 1; i < sequence.length; i++ ){
             var tone_delta = sequence[i] - sequence[i-1];
             if( tone_delta > 0) uptune ++;
-            if( tone_delta > 0) dwntune ++;
+            if( tone_delta < 0) downtune ++;
             if( tone_delta == 0) neutral ++;
         }
         if(neutral > 0){
-            console.debug("Scale: verifyDirection: scale had elements of no variation from the previous, count:", neutral);
-        }   
+            console.debug("ToneGroup.verifyDir: sequence contains elements of no variation from the previous, count:", neutral);
+        }
+        if( uptune == 0 && downtune == 0 ){
+            return lib.ToneGroup.DIRECTION.INDETERMINATE;
+        }
+        if( uptune > 0 ){
+            if(downtune == 0){
+                return lib.ToneGroup.DIRECTION.STRICT_ASCEND;
+            }
+            else if( (uptune / (uptune+downtune+neutral)) > lsns ){
+                return lib.ToneGroup.DIRECTION.LOOSE_ASCEND;
+            }
+        }
+        else if( downtune > 0 ){
+            if(uptune == 0){
+                return lib.ToneGroup.DIRECTION.STRICT_DESCEND;
+            }
+            else if( (downtune / (uptune+downtune+neutral)) > lsns){
+                return lib.ToneGroup.DIRECTION.LOOSE_DESCEND;
+            }
+        }
+        return lib.ToneGroup.DIRECTION.INDETERMINATE;        
     }
     
-    // check if ends on same octave as start, reports how many octaves are spanned and in what direction
+    // TODO check if ends on same octave as start, reports how many octaves are spanned and in what direction
     lib.ToneGroup.verifyOctave = function( sequence ){
         
     }
