@@ -57,6 +57,7 @@ Array.prototype.injectArray = function( index, arr ) {
     lib.NUM_TONES = 12;
     lib.DEFAULT_OCTAVE = 4;
     lib.ZERO_OCTAVE = -1; // at what octave number is C = 0?
+    lib.LOOSENESS_CUTOFF = 0.66;
 
     lib.note_order = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
@@ -106,6 +107,13 @@ Array.prototype.injectArray = function( index, arr ) {
         });
         return lib.letter_vals[base] + modifier;
     };
+    
+    // shifts a tone (assuming it placed relative to a middle-C of 0)
+    // according to the set default / given and zero octaves
+    lib.ToOctave = function( tone, octave ){
+        var oct = octave || lib.DEFAULT_OCTAVE;
+        return lib.NUM_TONES * (oct - lib.ZERO_OCTAVE) + tone;
+    }
     
     lib.LetterizeNumber = function( num ){
         if( typeof num !== 'number' ){
@@ -181,7 +189,8 @@ Array.prototype.injectArray = function( index, arr ) {
         this.octave = octv || lib.DEFAULT_OCTAVE;  
     };
         lib.SPN.prototype.toNum = function(){
-            return lib.NUM_TONES * (this.octave - lib.ZERO_OCTAVE) + lib.ParseLetter(this.letter); // in compliance with MIDI, 0 is C-1
+            return lib.ToOctave( lib.ParseLetter(this.letter), this.octave );
+            //return lib.NUM_TONES * (this.octave - lib.ZERO_OCTAVE) + lib.ParseLetter(this.letter); // in compliance with MIDI, 0 is C-1
         };
         
         lib.SPN.prototype.fromNum = function( num ){
@@ -252,40 +261,8 @@ Array.prototype.injectArray = function( index, arr ) {
                 tns.push( this.tones[ mod(start + i, this.tones.length) ] );
             }
         };
-    
-    lib.ToneGroup.analyzeOctave = function( sequence ){
         
-    };
-    
-    lib.Chord = function( tones, name ){
-        lib.ToneGroup.call(this, tones, name || "unnamed chord", "Chord");
-    };
-        lib.Chord.prototype = Object.create(lib.ToneGroup.prototype);
-        lib.Chord.prototype.constructor = lib.Chord;
-        
-        lib.Chord.prototype.ordered = false;
-        
-        lib.Chord.prototype.play = function( controller, channel, volume, duration, delay ){
-            for(var i = 0; i < this.tones.length; i++){
-               lib.PlayNote( controller, channel, this.tones[i], volume, duration, delay );
-            }
-        };
-        
-    lib.Scale = function( sequence, name ){
-        lib.ToneGroup.call(this, sequence, name || "unnamed scale", "Scale");
-        
-        // if the incoming tone sequence ends with a repeat of the first tone, remove the repeat
-        if( lib.TonesEquivalent( this.tones[0], this.tones[this.tones.length-1]) ){
-            console.debug("Scale: constructor found equivalent first and final tones; truncating for consistency");
-            this.tones.splice(this.tones.length-1, 1);
-        }
-    };
-        lib.Scale.prototype = Object.create(lib.ToneGroup.prototype);
-        lib.Scale.prototype.constructor = lib.Scale;
-        
-        lib.Scale.prototype.ordered = true;
-    
-    lib.ToneGroup.DIRECTION = Object.freeze({
+        lib.ToneGroup.DIRECTION = Object.freeze({
         STRICT_ASCEND   : {value:2, name:"Ascending",   strictness:"Strict"}, // every note increases in pitch
         STRICT_DESCEND  : {value:-2, name:"Descending", strictness:"Strict"}, // every note decreases in pitch
         LOOSE_ASCEND    : {value:1, name:"Ascending",   strictness:"Loose"}, // 2/3 majority of notes are increasing in pitch
@@ -295,11 +272,11 @@ Array.prototype.injectArray = function( index, arr ) {
     
     // TODO test and do something useful
     lib.ToneGroup.verifyDir = function( sequence, loose_cutoff ){
-        if(typeof sequence !== 'Array'){
+        if(sequence instanceof Array){
             console.debug("ToneGroup.verifyDir: sequence was not an array");
         }
         
-        var lsns = loose_cutoff || 0.66;
+        var lsns = loose_cutoff || lib.LOOSENESS_CUTOFF;
         var uptune  = 0;
         var downtune = 0;
         var neutral = 0;
@@ -334,18 +311,67 @@ Array.prototype.injectArray = function( index, arr ) {
         return lib.ToneGroup.DIRECTION.INDETERMINATE;        
     }
     
-    // TODO check if ends on same octave as start, reports how many octaves are spanned and in what direction
-    lib.ToneGroup.verifyOctave = function( sequence ){
-        
+    // check if ends on same octave as start, reports how many octaves are spanned and in what direction
+    lib.ToneGroup.bounds = function( sequence ){
+        return {
+            begin:  sequence[0],
+            end:    sequence[sequence.length - 1],
+            min:    Math.min.apply(null,sequence),
+            max:    Math.max.apply(null,sequence)
+        };
     }
+    
+    // how many octaves is note away from the octave defined from base to 12 tones higher?
+    lib.ToneGroup.verifyOctave = function( note, base ){
+        return Math.floor( (note - base) / lib.NUM_TONES );
+    }
+    
+    lib.ToneGroup.checkBounds = function( sequence, base ){
+        var bds = lib.ToneGroup.bounds(sequence);
+        if( base != bds.begin ){
+            console.debug("ToneGroup.checkBounds: sequence does not begin on base tone");
+        }
+        console.debug( "ToneGroup.checkBounds: sequence begins with " + lib.LetterizeNumber(bds.begin) + ",", lib.ToneGroup.verifyOctave(bds.begin, base), "octaves from the base octave" );
+        console.debug( "ToneGroup.checkBounds: sequence ends with " + lib.LetterizeNumber(bds.end) + ",", lib.ToneGroup.verifyOctave(bds.end, base), "octaves from the base octave" );
+        console.debug( "ToneGroup.checkBounds: sequence max is " + lib.LetterizeNumber(bds.max) + ",", lib.ToneGroup.verifyOctave(bds.max, base), "octaves from the base octave" );
+        console.debug( "ToneGroup.checkBounds: sequence min is " + lib.LetterizeNumber(bds.min) + ",", lib.ToneGroup.verifyOctave(bds.min, base), "octaves from the base octave" );
+    }
+    
+    lib.Chord = function( tones, name ){
+        lib.ToneGroup.call(this, tones, name || "unnamed chord", "Chord");
+    };
+        lib.Chord.prototype = Object.create(lib.ToneGroup.prototype);
+        lib.Chord.prototype.constructor = lib.Chord;
         
+        lib.Chord.prototype.ordered = false;
+        
+        lib.Chord.prototype.play = function( controller, channel, volume, duration, delay ){
+            for(var i = 0; i < this.tones.length; i++){
+               lib.PlayNote( controller, channel, this.tones[i], volume, duration, delay );
+            }
+        };
+        
+    lib.Scale = function( sequence, name, unidir ){
+        this.unidir = unidir;
+        lib.ToneGroup.call(this, sequence, name || "unnamed scale", "Scale");
+        // if the incoming tone sequence ends with a repeat of the first tone, remove the repeat
+        if( lib.TonesEquivalent( this.tones[0], this.tones[this.tones.length-1]) ){
+            console.debug("Scale: constructor found equivalent first and final tones; truncating for consistency");
+            this.tones.splice(this.tones.length-1, 1);
+        }
+    };
+        lib.Scale.prototype = Object.create(lib.ToneGroup.prototype);
+        lib.Scale.prototype.constructor = lib.Scale;
+        
+        lib.Scale.prototype.ordered = true;
+    
+    
     // time for scales and stuff
     // Scales are supposed to be ordered sequences
     // Chords are supposed to be played all at once
     // Maybe it makes sense to store scales not as #s of the notes
     // but rather as the size of the steps between notes
     // this would allow easy key-switching in many cases
-    
     
     // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
     
@@ -362,7 +388,7 @@ Array.prototype.injectArray = function( index, arr ) {
             return ivs;
         };
         
-    lib.ScaleClass = function( steps, name, namifier ){
+    lib.ScaleClass = function( steps, name, namifier, reverser ){
         this.steps  = steps;
         lib.TGClass.call(this, this.getTones(), name || "unnamed scale class", namifier);
     };
@@ -595,6 +621,14 @@ Array.prototype.injectArray = function( index, arr ) {
                 this.parent.reSequence(this);
             }
         }
+        
+        lib.MusicNode.prototype.extractTones = function(){
+            var tones = [];
+            this.sequence.forEach( function( sqNode, index ){
+                tones[index] = sqNode.getKey();
+            }, tones );
+            return tones;
+        }
 
         lib.MusicNode.prototype.getRemainingSpace = function( useSequence ){
             return this.duration - this.getInternalDuration( useSequence );
@@ -666,6 +700,7 @@ Array.prototype.injectArray = function( index, arr ) {
             }
             return leaves;
         }
+        
 
     // BPM = beats per measure
     // beatVal = 1/note val, (quarter, eighth)
