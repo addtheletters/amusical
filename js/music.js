@@ -108,6 +108,10 @@ Array.prototype.injectArray = function( index, arr ) {
         return lib.letter_vals[base] + modifier;
     };
     
+    lib.ParseStringSPN = function( spn_str ){
+        return (new lib.SPN()).fromString(spn_str).toNum();
+    }
+    
     // shifts a tone (assuming it placed relative to a middle-C of 0)
     // according to the set default / given and zero octaves
     lib.ToOctave = function( tone, octave ){
@@ -204,7 +208,11 @@ Array.prototype.injectArray = function( index, arr ) {
         };
         
         lib.SPN.prototype.fromString = function( stra ){
-            var pivot = stra.search(/-?\d+/g, "")
+            var pivot = stra.search(/-?\d+/g, "");
+            if(pivot < 0){
+                pivot = stra.length;
+            }
+            //console.debug("SPN: fromString: pivot is", pivot);
             this.letter = stra.slice(0, pivot);
             this.octave = parseInt( stra.slice(pivot) );
             return this;
@@ -321,20 +329,20 @@ Array.prototype.injectArray = function( index, arr ) {
         };
     }
     
-    // how many octaves is note away from the octave defined from base to 12 tones higher?
-    lib.ToneGroup.verifyOctave = function( note, base ){
-        return Math.floor( (note - base) / lib.NUM_TONES );
+    // how many octaves is note away from the octave defined from root to 12 tones higher?
+    lib.ToneGroup.verifyOctave = function( note, root ){
+        return Math.floor( (note - root) / lib.NUM_TONES );
     }
     
-    lib.ToneGroup.checkBounds = function( sequence, base ){
+    lib.ToneGroup.checkBounds = function( sequence, root ){
         var bds = lib.ToneGroup.bounds(sequence);
-        if( base != bds.begin ){
-            console.debug("ToneGroup.checkBounds: sequence does not begin on base tone");
+        if( root != bds.begin ){
+            console.debug("ToneGroup.checkBounds: sequence does not begin on root tone");
         }
-        console.debug( "ToneGroup.checkBounds: sequence begins with " + lib.LetterizeNumber(bds.begin) + ",", lib.ToneGroup.verifyOctave(bds.begin, base), "octaves from the base octave" );
-        console.debug( "ToneGroup.checkBounds: sequence ends with " + lib.LetterizeNumber(bds.end) + ",", lib.ToneGroup.verifyOctave(bds.end, base), "octaves from the base octave" );
-        console.debug( "ToneGroup.checkBounds: sequence max is " + lib.LetterizeNumber(bds.max) + ",", lib.ToneGroup.verifyOctave(bds.max, base), "octaves from the base octave" );
-        console.debug( "ToneGroup.checkBounds: sequence min is " + lib.LetterizeNumber(bds.min) + ",", lib.ToneGroup.verifyOctave(bds.min, base), "octaves from the base octave" );
+        console.debug( "ToneGroup.checkBounds: sequence begins with " + lib.LetterizeNumber(bds.begin) + ",", lib.ToneGroup.verifyOctave(bds.begin, root), "octaves from the root octave" );
+        console.debug( "ToneGroup.checkBounds: sequence ends with " + lib.LetterizeNumber(bds.end) + ",", lib.ToneGroup.verifyOctave(bds.end, root), "octaves from the root octave" );
+        console.debug( "ToneGroup.checkBounds: sequence max is " + lib.LetterizeNumber(bds.max) + ",", lib.ToneGroup.verifyOctave(bds.max, root), "octaves from the root octave" );
+        console.debug( "ToneGroup.checkBounds: sequence min is " + lib.LetterizeNumber(bds.min) + ",", lib.ToneGroup.verifyOctave(bds.min, root), "octaves from the root octave" );
     }
     
     lib.Chord = function( tones, name ){
@@ -395,9 +403,9 @@ Array.prototype.injectArray = function( index, arr ) {
         lib.ScaleClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ScaleClass.prototype.constructor = lib.ScaleClass;
         
-        lib.ScaleClass.prototype.getTones = function( baseKey ){
+        lib.ScaleClass.prototype.getTones = function( rootKey ){
             var relative_tones = [];
-            var curr_tone = baseKey || 0;
+            var curr_tone = rootKey || 0;
             for( var i = 0; i < this.steps.length+1; i++ ){
                 relative_tones.push( curr_tone );
                 if( i < this.steps.length ){
@@ -790,7 +798,7 @@ Array.prototype.injectArray = function( index, arr ) {
         }
         for(var i = 0; i < node.sequence.length; i++){
             var ind = (Math.floor(Math.random() * tmp_octave_range * tones.length) - tmp_octave_range * tones.length * 1/2);
-            node.sequence[i].value = new lib.Note( (lib.DEFAULT_OCTAVE - lib.ZERO_OCTAVE) * lib.NUM_TONES + tones[mod(ind, tones.length)] + lib.NUM_TONES * Math.floor(ind / tones.length) ) ;
+            node.sequence[i].value = new lib.Note( lib.ToOctave( tones[mod(ind, tones.length)], lib.DEFAULT_OCTAVE + Math.floor(ind / tones.length) ) ) ;
         }
     };
     
