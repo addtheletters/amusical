@@ -57,7 +57,7 @@ Array.prototype.injectArray = function( index, arr ) {
     lib.NUM_TONES = 12;
     lib.DEFAULT_OCTAVE = 4;
     lib.ZERO_OCTAVE = -1; // at what octave number is C = 0?
-    lib.LOOSENESS_CUTOFF = 0.66;
+    lib.LOOSENESS_CUTOFF = 0.66; // this is lazy and sort of unnecessary, should probably be removed
 
     lib.note_order = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
@@ -109,7 +109,7 @@ Array.prototype.injectArray = function( index, arr ) {
     };
     
     lib.ParseStringSPN = function( spn_str ){
-        return lib.Note().fromSPN(spn_str).getNum();//(new lib.SPN()).fromString(spn_str).toNum();
+        return (new lib.Note()).fromSPN(spn_str).getNum();//(new lib.SPN()).fromString(spn_str).toNum();
     };
     
     // shifts a tone (assuming it placed relative to a middle-C of 0)
@@ -157,8 +157,6 @@ Array.prototype.injectArray = function( index, arr ) {
         }
         else{
             console.debug("note initialized to default middle-C");
-            //console.log("arg was")
-            //console.log(arg)
             this.num = 60;
         }
     };
@@ -174,12 +172,10 @@ Array.prototype.injectArray = function( index, arr ) {
             return "[Note: num(" + this.num + "), SPN("+ this.toSPN() +")]";// dur(" + this.duration + ")]";
         };
         
-        // replacing SPN().fromNum(note.getNum()).letter
         lib.Note.prototype.letter = function(){
             return lib.getNoteOrder()[ mod(this.num, lib.NUM_TONES) ];
         }
         
-        // replacing SPN().fromNum(note.getNum()).octave
         lib.Note.prototype.octave = function(){
             return Math.floor( this.num / lib.NUM_TONES ) + lib.ZERO_OCTAVE;
         };
@@ -193,9 +189,15 @@ Array.prototype.injectArray = function( index, arr ) {
             return this.letter() + this.octave();// new lib.SPN().fromNum(this.num);
         };
         
-        // TODO remove SPN object, make this return string replacing SPN().fromString(str).toNum()
         lib.Note.prototype.fromSPN = function( spn ){
-            this.num = lib.ShiftOctave( lib.ParseLetter(this.letter()), this.octave() );
+            var pivot = spn.search(/-?\d+/g, "");
+            if(pivot < 0){
+                pivot = spn.length;
+            }
+            var spnobj = {};
+            spnobj.letter = spn.slice(0, pivot);
+            spnobj.octave = parseInt(spn.slice(pivot));
+            this.num = lib.ShiftOctave( lib.ParseLetter(spnobj.letter), spnobj.octave );
             return this;
         };
         
@@ -252,12 +254,12 @@ Array.prototype.injectArray = function( index, arr ) {
         };
         
         lib.ToneGroup.DIRECTION = Object.freeze({
-        STRICT_ASCEND   : {value:2, name:"Ascending",   strictness:"Strict"}, // every note increases in pitch
-        STRICT_DESCEND  : {value:-2, name:"Descending", strictness:"Strict"}, // every note decreases in pitch
-        LOOSE_ASCEND    : {value:1, name:"Ascending",   strictness:"Loose"}, // 2/3 majority of notes are increasing in pitch
-        LOOSE_DESCEND   : {value:-1, name:"Descending", strictness:"Loose"}, // 2/3 majority of notes are decreasing in pitch
-        INDETERMINATE   : {value:0, name:"Indeterminate", strictness:"None"} // no strict or general pattern to tone changes
-    });
+            STRICT_ASCEND   : {value:2, name:"Ascending",   strictness:"Strict"}, // every note increases in pitch
+            STRICT_DESCEND  : {value:-2, name:"Descending", strictness:"Strict"}, // every note decreases in pitch
+            LOOSE_ASCEND    : {value:1, name:"Ascending",   strictness:"Loose"}, // 2/3 majority of notes are increasing in pitch
+            LOOSE_DESCEND   : {value:-1, name:"Descending", strictness:"Loose"}, // 2/3 majority of notes are decreasing in pitch
+            INDETERMINATE   : {value:0, name:"Indeterminate", strictness:"None"} // no strict or general pattern to tone changes
+        });
     
     // TODO test and do something useful
     lib.ToneGroup.verifyDir = function( sequence, loose_cutoff ){
@@ -354,26 +356,31 @@ Array.prototype.injectArray = function( index, arr ) {
         
         lib.Scale.prototype.ordered = true;
         
-        // TODO this
+        // TODO test
         lib.Scale.prototype.findDegree = function( tone, multioctave ){
             //multioctave: bool: get the degree, unmodded. If outside the specified base octave, get an accurate measure of how far out
             var ind = this.tones.indexOf( mod(tone, lib.NUM_TONES) ) ;
             if( ind < 0 ) return null;
-            else{
-                
-                return;
+            else if( multioctave ){ // frankly this technique is super useful, needs to be reversedish in pickDegree and then 
+            // transplanted into pickTones, if I decide ToneGroup should have that functionality and not just Scale. Hm, maybe?
+                var octs = Math.floor(tone / lib.NUM_TONES); // how many octaves away?
+                ind = ind + octs * this.tones.length;
             }
+            return ind;
         }
         
+        // TODO this
         lib.Scale.prototype.pickDegree = function( degree, multioctave ){
             //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findDegree?
         }
         
+        // TODO test
         lib.Scale.prototype.nextTone = function( tone, multioctave ){
             //multioctave: bool: if so, can go beyond specified base octave. If not, modded / loops around to start
             return this.pickFromDegree( this.findDegree(tone, multioctave) + 1, multioctave );
         }
         
+        // TODO test
         lib.Scale.prototype.prevTone = function( tone, multioctave ){
             return this.pickFromDegree( this.findDegree(tone, multioctave) - 1, multioctave );
         }
