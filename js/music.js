@@ -372,6 +372,26 @@ Array.prototype.injectArray = function( index, arr ) {
         lib.Scale.prototype.constructor = lib.Scale;
         
         lib.Scale.prototype.ordered = true;
+        
+        // TODO this
+        lib.Scale.prototype.findDegree = function( tone, multioctave ){
+            //multioctave: bool: get the degree, unmodded. If outside the specified base octave, get an accurate measure of how far out
+        }
+        
+        lib.Scale.prototype.pickFromDegree = function( degree, multioctave ){
+            //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findDegree?
+        }
+        
+        lib.Scale.prototype.nextTone = function( tone, multioctave ){
+            //multioctave: bool: if so, can go beyond specified base octave. If not, modded / loops around to start
+            return this.pickFromDegree( this.findDegree(tone, multioctave) + 1, multioctave );
+        }
+        
+        lib.Scale.prototype.prevTone = function( tone, multioctave ){
+            return this.pickFromDegree( this.findDegree(tone, multioctave) - 1, multioctave );
+        }
+        
+        // scale.pickDegree(scale.findDegree(tone)+1)
     
     
     // time for scales and stuff
