@@ -109,15 +109,16 @@ Array.prototype.injectArray = function( index, arr ) {
     };
     
     lib.ParseStringSPN = function( spn_str ){
-        return (new lib.SPN()).fromString(spn_str).toNum();
-    }
+        return lib.Note().fromSPN(spn_str).getNum();//(new lib.SPN()).fromString(spn_str).toNum();
+    };
     
     // shifts a tone (assuming it placed relative to a middle-C of 0)
     // according to the set default / given and zero octaves
-    lib.ToOctave = function( tone, octave ){
+    // with no octave argument, shifts to the default octave
+    lib.ShiftOctave = function( tone, octave ){
         var oct = octave || lib.DEFAULT_OCTAVE;
         return lib.NUM_TONES * (oct - lib.ZERO_OCTAVE) + tone;
-    }
+    };
     
     lib.LetterizeNumber = function( num ){
         if( typeof num !== 'number' ){
@@ -149,7 +150,7 @@ Array.prototype.injectArray = function( index, arr ) {
 
     lib.Note = function( arg ){
         if( typeof arg === 'string' ){
-            this.fromSPN(new lib.SPN().fromString(arg));
+            this.fromSPN(arg);
         }
         else if( typeof arg === 'number'){
             this.num = arg;
@@ -173,48 +174,28 @@ Array.prototype.injectArray = function( index, arr ) {
             return "[Note: num(" + this.num + "), SPN("+ this.toSPN() +")]";// dur(" + this.duration + ")]";
         };
         
+        // replacing SPN().fromNum(note.getNum()).letter
+        lib.Note.prototype.letter = function(){
+            return lib.getNoteOrder()[ mod(this.num, lib.NUM_TONES) ];
+        }
+        
+        // replacing SPN().fromNum(note.getNum()).octave
+        lib.Note.prototype.octave = function(){
+            return Math.floor( this.num / lib.NUM_TONES ) + lib.ZERO_OCTAVE;
+        };
+        
         lib.Note.prototype.play = function( controller, channel, volume, duration, delay ){
             lib.PlayNote( controller, channel, this.num, volume, duration, delay );
         };
           
         /** scientific pitch notation: https://en.wikipedia.org/wiki/Scientific_pitch_notation */
         lib.Note.prototype.toSPN = function(){
-            return new lib.SPN().fromNum(this.num);
+            return this.letter() + this.octave();// new lib.SPN().fromNum(this.num);
         };
         
+        // TODO remove SPN object, make this return string replacing SPN().fromString(str).toNum()
         lib.Note.prototype.fromSPN = function( spn ){
-            this.num = spn.toNum();
-        };
-        
-    lib.SPN = function( letr, octv ){
-        /** includes accidental */
-        this.letter = letr || "C";
-        /* middle C is C4 */
-        this.octave = octv || lib.DEFAULT_OCTAVE;  
-    };
-        lib.SPN.prototype.toNum = function(){
-            return lib.ToOctave( lib.ParseLetter(this.letter), this.octave );
-            //return lib.NUM_TONES * (this.octave - lib.ZERO_OCTAVE) + lib.ParseLetter(this.letter); // in compliance with MIDI, 0 is C-1
-        };
-        
-        lib.SPN.prototype.fromNum = function( num ){
-            this.letter = lib.getNoteOrder()[ mod(num, lib.NUM_TONES) ];
-            this.octave = Math.floor( num / lib.NUM_TONES ) + lib.ZERO_OCTAVE;
-            return this;
-        };
-        
-        lib.SPN.prototype.toString = function(){
-            return this.letter + this.octave;
-        };
-        
-        lib.SPN.prototype.fromString = function( stra ){
-            var pivot = stra.search(/-?\d+/g, "");
-            if(pivot < 0){
-                pivot = stra.length;
-            }
-            //console.debug("SPN: fromString: pivot is", pivot);
-            this.letter = stra.slice(0, pivot);
-            this.octave = parseInt( stra.slice(pivot) );
+            this.num = lib.ShiftOctave( lib.ParseLetter(this.letter()), this.octave() );
             return this;
         };
         
@@ -235,7 +216,7 @@ Array.prototype.injectArray = function( index, arr ) {
         //     return new lib.ToneGroup( this.reverser(this.tones), this.name + " reversed", this.type_id );  
         // };
         
-        // TODO test
+        // TODO test, see if necessary
         lib.ToneGroup.prototype.locateTone = function( tn ){
             return this.tones.indexOf(tn);
         };
@@ -376,9 +357,15 @@ Array.prototype.injectArray = function( index, arr ) {
         // TODO this
         lib.Scale.prototype.findDegree = function( tone, multioctave ){
             //multioctave: bool: get the degree, unmodded. If outside the specified base octave, get an accurate measure of how far out
+            var ind = this.tones.indexOf( mod(tone, lib.NUM_TONES) ) ;
+            if( ind < 0 ) return null;
+            else{
+                
+                return;
+            }
         }
         
-        lib.Scale.prototype.pickFromDegree = function( degree, multioctave ){
+        lib.Scale.prototype.pickDegree = function( degree, multioctave ){
             //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findDegree?
         }
         
@@ -818,7 +805,7 @@ Array.prototype.injectArray = function( index, arr ) {
         }
         for(var i = 0; i < node.sequence.length; i++){
             var ind = (Math.floor(Math.random() * tmp_octave_range * tones.length) - tmp_octave_range * tones.length * 1/2);
-            node.sequence[i].value = new lib.Note( lib.ToOctave( tones[mod(ind, tones.length)], lib.DEFAULT_OCTAVE + Math.floor(ind / tones.length) ) ) ;
+            node.sequence[i].value = new lib.Note( lib.ShiftOctave( tones[mod(ind, tones.length)], lib.DEFAULT_OCTAVE + Math.floor(ind / tones.length) ) ) ;
         }
     };
     
