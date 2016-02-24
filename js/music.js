@@ -109,7 +109,7 @@ Array.prototype.injectArray = function( index, arr ) {
     };
     
     lib.ParseStringSPN = function( spn_str ){
-        return (new lib.Note()).fromSPN(spn_str).getNum();//(new lib.SPN()).fromString(spn_str).toNum();
+        return (new lib.Note(spn_str)).getNum();//(new lib.SPN()).fromString(spn_str).toNum();
     };
     
     // shifts a tone (assuming it placed relative to a middle-C of 0)
@@ -218,12 +218,11 @@ Array.prototype.injectArray = function( index, arr ) {
         //     return new lib.ToneGroup( this.reverser(this.tones), this.name + " reversed", this.type_id );  
         // };
         
-        // TODO test, see if necessary
+        // TODO see if necessary, Scale has a more useful function
         lib.ToneGroup.prototype.locateTone = function( tn ){
             return this.tones.indexOf(tn);
         };
         
-        // TODO test
         // notice that the root, normally notated degree 1, corresponds to
         // an argument given of zero
         // a perfect fifth corresponds to a degree given of 4
@@ -279,6 +278,9 @@ Array.prototype.injectArray = function( index, arr ) {
         }
         if(neutral > 0){
             console.debug("ToneGroup.verifyDir: sequence contains elements of no variation from the previous, count:", neutral);
+            if( this instanceof lib.Scale ){
+                console.debug("Scales should not have repeated tones!");
+            }
         }
         if( uptune == 0 && downtune == 0 ){
             return lib.ToneGroup.DIRECTION.INDETERMINATE;
@@ -356,9 +358,8 @@ Array.prototype.injectArray = function( index, arr ) {
         
         lib.Scale.prototype.ordered = true;
         
-        // TODO test
+        //multioctave: bool: get the degree, unmodded. If outside the specified base octave, get an accurate measure of how far out
         lib.Scale.prototype.findDegree = function( tone, multioctave ){
-            //multioctave: bool: get the degree, unmodded. If outside the specified base octave, get an accurate measure of how far out
             var ind = this.tones.indexOf( mod(tone, lib.NUM_TONES) ) ;
             if( ind < 0 ) return null;
             else if( multioctave ){ // frankly this technique is super useful, needs to be reversedish in pickDegree and then 
@@ -369,20 +370,31 @@ Array.prototype.injectArray = function( index, arr ) {
             return ind;
         }
         
-        // TODO this
+        //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findDegree?
         lib.Scale.prototype.pickDegree = function( degree, multioctave ){
-            //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findDegree?
+            var ret = this.tones[mod(degree, this.tones.length)];
+            if( multioctave ){
+                var octs = Math.floor(degree / this.tones.length);
+                ret = ret + octs * lib.NUM_TONES;
+            }
+            return ret;
         }
         
-        // TODO test
         lib.Scale.prototype.nextTone = function( tone, multioctave ){
             //multioctave: bool: if so, can go beyond specified base octave. If not, modded / loops around to start
-            return this.pickFromDegree( this.findDegree(tone, multioctave) + 1, multioctave );
+            var found = this.findDegree(tone, multioctave);
+            if(found !== null){
+                return this.pickDegree( found + 1, multioctave );
+            }
+            return found;
         }
         
-        // TODO test
         lib.Scale.prototype.prevTone = function( tone, multioctave ){
-            return this.pickFromDegree( this.findDegree(tone, multioctave) - 1, multioctave );
+            var found = this.findDegree(tone, multioctave);
+            if(found !== null){
+                return this.pickDegree( found - 1, multioctave );
+            }
+            return found;
         }
         
         // scale.pickDegree(scale.findDegree(tone)+1)
