@@ -234,6 +234,9 @@ Array.prototype.injectArray = function( index, arr ) {
             for( var i = 0; i < degrees.length; i++ ){
                 if(degrees[i] > this.tones.length){
                     console.debug(this.type_id, "pickTones: specified degree exceeds defined scale size; looping");
+                    if( this instanceof lib.Scale ){
+                        console.debug("Perhaps you meant to use Scale.pickDegrees()?");
+                    }
                 }
                 tns.push( this.tones[ mod( degrees[i], this.tones.length ) ] );
             }
@@ -253,20 +256,23 @@ Array.prototype.injectArray = function( index, arr ) {
         };
         
         lib.ToneGroup.DIRECTION = Object.freeze({
-            STRICT_ASCEND   : {value:2, name:"Ascending",   strictness:"Strict"}, // every note increases in pitch
-            STRICT_DESCEND  : {value:-2, name:"Descending", strictness:"Strict"}, // every note decreases in pitch
-            LOOSE_ASCEND    : {value:1, name:"Ascending",   strictness:"Loose"}, // 2/3 majority of notes are increasing in pitch
-            LOOSE_DESCEND   : {value:-1, name:"Descending", strictness:"Loose"}, // 2/3 majority of notes are decreasing in pitch
+            STRICT_ASCEND   : {value:3, name:"Ascending",   strictness:"Strict"}, // every note increases in pitch
+            STRICT_DESCEND  : {value:-3, name:"Descending", strictness:"Strict"}, // every note decreases in pitch
+            END_HIGHEST     : {value:2, name:"End is Highest", strictness:"None"},
+            END_LOWEST      : {value:-2, name:"End is Lowest", strictness:"None"},
+            END_HIGHER      : {value:1, name:"End is Higher than Start", strictness:"None"},  
+            END_LOWER       : {value:-1, name:"End is Lower than Start", strictness:"None"},
+            //LOOSE_ASCEND    : {value:1, name:"Ascending",   strictness:"Loose"}, // 2/3 majority of notes are increasing in pitch
+            //LOOSE_DESCEND   : {value:-1, name:"Descending", strictness:"Loose"}, // 2/3 majority of notes are decreasing in pitch
             INDETERMINATE   : {value:0, name:"Indeterminate", strictness:"None"} // no strict or general pattern to tone changes
         });
     
-    // TODO test and do something useful
-    lib.ToneGroup.verifyDir = function( sequence, loose_cutoff ){
-        if(sequence instanceof Array){
+    // do something useful
+    lib.ToneGroup.verifyDir = function( sequence ){
+        if(!(sequence instanceof Array)){
             console.debug("ToneGroup.verifyDir: sequence was not an array");
         }
-        
-        var lsns = loose_cutoff || lib.LOOSENESS_CUTOFF;
+        var bds = lib.ToneGroup.bounds(sequence);
         var uptune  = 0;
         var downtune = 0;
         var neutral = 0;
@@ -278,29 +284,37 @@ Array.prototype.injectArray = function( index, arr ) {
         }
         if(neutral > 0){
             console.debug("ToneGroup.verifyDir: sequence contains elements of no variation from the previous, count:", neutral);
-            if( this instanceof lib.Scale ){
-                console.debug("Scales should not have repeated tones!");
-            }
+            console.debug("Scales should not have repeated tones!");
         }
         if( uptune == 0 && downtune == 0 ){
+            //console.log("Indet with no up or down...");
             return lib.ToneGroup.DIRECTION.INDETERMINATE;
         }
         if( uptune > 0 ){
+            //console.log("Uptunes exist.");
             if(downtune == 0){
                 return lib.ToneGroup.DIRECTION.STRICT_ASCEND;
             }
-            else if( (uptune / (uptune+downtune+neutral)) > lsns ){
-                return lib.ToneGroup.DIRECTION.LOOSE_ASCEND;
+            else if(bds.end == bds.max){
+                return lib.ToneGroup.DIRECTION.END_HIGHEST;
+            }
+            else if(bds.end > bds.begin){
+                 return lib.ToneGroup.DIRECTION.END_HIGHER;
             }
         }
-        else if( downtune > 0 ){
+        if( downtune > 0 ){
+            //console.log("Downtunes exist.");
             if(uptune == 0){
                 return lib.ToneGroup.DIRECTION.STRICT_DESCEND;
             }
-            else if( (downtune / (uptune+downtune+neutral)) > lsns){
-                return lib.ToneGroup.DIRECTION.LOOSE_DESCEND;
+            else if(bds.end == bds.min){
+                return lib.ToneGroup.DIRECTION.END_LOWEST;
+            }
+            else if(bds.end < bds.begin){
+                return lib.ToneGroup.DIRECTION.END_LOWER;
             }
         }
+        //console.log("Indet with no other traits");
         return lib.ToneGroup.DIRECTION.INDETERMINATE;        
     }
     
@@ -368,7 +382,7 @@ Array.prototype.injectArray = function( index, arr ) {
                 ind = ind + octs * this.tones.length;
             }
             return ind;
-        }
+        };
         
         //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findDegree?
         lib.Scale.prototype.pickDegree = function( degree, multioctave ){
@@ -378,7 +392,20 @@ Array.prototype.injectArray = function( index, arr ) {
                 ret = ret + octs * lib.NUM_TONES;
             }
             return ret;
-        }
+        };
+        
+        // TODO test
+        // similar to ToneGroup.prototype.pickTones, but allows for extension to additional octaves.
+        lib.Scale.prototype.pickDegrees = function( degrees, multioctave ){
+            if(!degrees){
+                return this.tones;
+            }
+            var tns = [];
+            for( var i = 0; i < degrees.length; i++ ){
+                tns.push(this.pickDegree(degrees[i], multioctave));
+            }
+            return tns;
+        };
         
         lib.Scale.prototype.nextTone = function( tone, multioctave ){
             //multioctave: bool: if so, can go beyond specified base octave. If not, modded / loops around to start
@@ -387,7 +414,7 @@ Array.prototype.injectArray = function( index, arr ) {
                 return this.pickDegree( found + 1, multioctave );
             }
             return found;
-        }
+        };
         
         lib.Scale.prototype.prevTone = function( tone, multioctave ){
             var found = this.findDegree(tone, multioctave);
@@ -395,10 +422,8 @@ Array.prototype.injectArray = function( index, arr ) {
                 return this.pickDegree( found - 1, multioctave );
             }
             return found;
-        }
+        };
         
-        // scale.pickDegree(scale.findDegree(tone)+1)
-    
     
     // time for scales and stuff
     // Scales are supposed to be ordered sequences
@@ -409,7 +434,7 @@ Array.prototype.injectArray = function( index, arr ) {
     
     // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
     
-    lib.TGClass = function( intervals, name, namifier){
+    lib.TGClass = function( intervals, name, namifier ){
         this.intervals = intervals;
         this.name = name || "unnamed tone group class";
         this.nameFunc = namifier || function( sc, k ){ return lib.LetterizeNumber(k) + " " + sc.name; };
@@ -422,7 +447,7 @@ Array.prototype.injectArray = function( index, arr ) {
             return ivs;
         };
         
-    lib.ScaleClass = function( steps, name, namifier, reverser ){
+    lib.ScaleClass = function( steps, name, namifier ){
         this.steps  = steps;
         lib.TGClass.call(this, this.getTones(), name || "unnamed scale class", namifier);
     };
@@ -446,11 +471,22 @@ Array.prototype.injectArray = function( index, arr ) {
             return new lib.Scale( this.getTones(key), useNameFunc(this, key) );
         };
         
+    // When defining a Chord Class, degrees are specified as normally read rather than
+    // how ToneGroup.prototype.pickTones wants them.
+    // (1 represents the root, 3 represents 2 above the root.)
     lib.ChordClass = function( semitones, name, namifier ){
-        lib.TGClass.call(this, semitones, name || "unnamed chord class", namifier);
+        var sts = []
+        semitones.forEach(function(ele){
+           this.push(ele - 1); 
+        }, sts);
+        lib.TGClass.call(this, sts, name || "unnamed chord class", namifier);
     };
         lib.ChordClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ChordClass.prototype.constructor = lib.ChordClass;
+        
+        lib.ChordClass.prototype.buildChord = function( scale ){
+            return scale.pickDegrees( this.intervals, true );
+        };
     
     lib.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
         new lib.Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],  "chromatic 12 tone"), // chromatic (all 12 tones)
@@ -817,7 +853,7 @@ Array.prototype.injectArray = function( index, arr ) {
         return node;
     };
 
-    lib.Tonalize = function( node, tones ){
+    lib.RandomTonalize = function( node, tones ){
         var tmp_octave_range = 2;
         if(node.sequence.length <= 0){
             console.debug("node is nontonalizable");
@@ -828,7 +864,7 @@ Array.prototype.injectArray = function( index, arr ) {
         }
     };
     
-    // TODO finish this
+    // TODO finish / test this
     // algo goes top to bottom choosing a 'root' tone for node in *value* order
     // these root tones are assigned according to scales / chord sequences, chords can jump randomly but scales must be ordered?
     // then each child is gone into, and a similar process can occur using the assigned 'root' as the base for scale or chord choice
@@ -843,6 +879,13 @@ Array.prototype.injectArray = function( index, arr ) {
             lib.ScaleTonalize( node.value[i], fillers);//fillers.splice( fillers.indexOf(filler), 1 ) );
         }
     };
+    
+    // TODO have this be sensible. This should progress note by note in the sequence and
+    // tonalize based off the previous note values in the sequence.
+    lib.SequentialTonalize = function(node, fillers){
+        console.debug("SEQUENTIAL TONALIZE UNIMPLEMENTED");
+        return "UNIMPLEMENTED";
+    }
  
 })(music);
 

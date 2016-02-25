@@ -116,7 +116,7 @@
     function newSection() {
         var noda = music.BuildRhythm(4, music.PATTERNS, 10, 5);
         var sca = music.scaleClasses.randomChoice().buildScale(Math.floor(Math.random()*music.getNoteOrder().length));
-        music.Tonalize(noda, sca.pickTones());
+        music.RandomTonalize(noda, sca.pickTones());
         
         //music.ScaleTonalize( noda,  );
         
