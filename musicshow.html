@@ -115,7 +115,7 @@
 
     function newSection() {
         var noda = music.BuildRhythm(4, music.PATTERNS, 10, 5);
-        var sca = music.scaleClasses.randomChoice().buildScale(Math.floor(Math.random()*music.getNoteOrder().length));
+        var sca = music.scaleClasses.randomChoice().build(Math.floor(Math.random()*music.getNoteOrder().length));
         music.RandomTonalize(noda, sca.pickTones());
         
         //music.ScaleTonalize( noda,  );
@@ -157,6 +157,6 @@
         <hr>
         <canvas id="drawspace" width="1050" height="200" style="border: 1px solid black"></canvas>
     </div>
-    <span id="version" >v0.11</span>
+    <span id="version" >v0.14</span>
 </body>
 </html>

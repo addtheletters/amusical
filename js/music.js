@@ -118,8 +118,34 @@ Array.prototype.injectArray = function( index, arr ) {
     // with no octave argument, shifts to the default octave
     lib.ShiftOctave = function( tone, octave ){
         var oct = octave || lib.DEFAULT_OCTAVE;
-        return lib.NUM_TONES * (oct - lib.ZERO_OCTAVE) + tone;
+        return lib.NUM_TONES * (oct - lib.ZERO_OCTAVE) + mod(tone, lib.NUM_TONES);
     };
+    
+    lib.Shift = function( originals, amount ){
+        var shifted = [];
+        originals.forEach(function(ele){
+            this.push(ele + amount); 
+        }, shifted);
+        return shifted;
+    };
+    
+    lib.PickOne = function( sequence, index, nowrap ){
+        var ret = sequence[mod(index, sequence.length)];
+        if( nowrap ){
+            var octs = Math.floor(index / sequence.length);
+            ret = ret + octs * lib.NUM_TONES;
+        }
+        return ret;
+    };
+    
+    lib.PickSequence = function( sequence, indices, nowrap ){
+        if(!indices)  return sequence;
+        var ret = [];
+        for( var i = 0; i < indices.length; i++ ){
+            ret.push(lib.PickOne(sequence, indices[i], nowrap));
+        }
+        return ret;
+    }
     
     lib.LetterizeNumber = function( num ){
         if( typeof num !== 'number' ){
@@ -215,29 +241,11 @@ Array.prototype.injectArray = function( index, arr ) {
             return this.tones[0];
         };
         
-        // TODO see if necessary, Scale has a more useful function
-        lib.ToneGroup.prototype.locateTone = function( tn ){
-            return this.tones.indexOf(tn);
-        };
-        
         // notice that the root, normally notated degree 1, corresponds to
         // an argument given of zero
         // a perfect fifth corresponds to a degree given of 4
-        lib.ToneGroup.prototype.pickTones = function( degrees ){
-            if(!degrees){
-                return this.tones;
-            }
-            var tns = [];
-            for( var i = 0; i < degrees.length; i++ ){
-                if(degrees[i] > this.tones.length){
-                    console.debug(this.type_id, "pickTones: specified degree exceeds defined scale size; looping");
-                    if( this instanceof lib.Scale ){
-                        console.debug("Perhaps you meant to use Scale.pickDegrees()?");
-                    }
-                }
-                tns.push( this.tones[ mod( degrees[i], this.tones.length ) ] );
-            }
-            return tns;
+        lib.ToneGroup.prototype.pickTones = function( degrees, wrap ){
+            return lib.PickSequence(this.tones, degrees, wrap);
         };
         
         // start: index of start, not starting val
@@ -379,25 +387,11 @@ Array.prototype.injectArray = function( index, arr ) {
         
         //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findDegree?
         lib.Scale.prototype.pickDegree = function( degree, multioctave ){
-            var ret = this.tones[mod(degree, this.tones.length)];
-            if( multioctave ){
-                var octs = Math.floor(degree / this.tones.length);
-                ret = ret + octs * lib.NUM_TONES;
-            }
-            return ret;
+            return lib.PickOne(this.tones, degree, multioctave);
         };
         
-        // TODO test
-        // similar to ToneGroup.prototype.pickTones, but allows for extension to additional octaves.
-        lib.Scale.prototype.pickDegrees = function( degrees, multioctave ){
-            if(!degrees){
-                return this.tones;
-            }
-            var tns = [];
-            for( var i = 0; i < degrees.length; i++ ){
-                tns.push(this.pickDegree(degrees[i], multioctave));
-            }
-            return tns;
+        lib.Scale.prototype.extractChord = function( degrees, name ){
+            return new lib.Chord( this.pickTones( lib.Shift(degrees, -1), true), name);
         };
         
         lib.Scale.prototype.nextTone = function( tone, multioctave ){
@@ -431,18 +425,29 @@ Array.prototype.injectArray = function( index, arr ) {
         this.intervals = intervals;
         this.name = name || "unnamed tone group class";
         this.nameFunc = namifier || function( tgc, k ){ return lib.LetterizeNumber(k) + " " + tgc.name; };
+        this.BuildType = null;
     };
-        lib.TGClass.getIntervals = function( shift ){
+        lib.TGClass.prototype.getIntervals = function( rootKey ){
             var ivs = [];
+            var shift = rootKey || 0;
             for(var i = 0; i < this.intervals.length; i++){
                 ivs.push( this.intervals[i] + shift );
             }
             return ivs;
         };
         
+        lib.TGClass.prototype.build = function( rootKey, namifier ){
+            var root = rootKey || 0;
+            var useNameFunc = namifier || this.nameFunc;
+            var ret = new this.BuildType( this.getIntervals(root), useNameFunc(this, root) );
+            ret.builder = this; 
+            return ret;
+        };
+        
     lib.ScaleClass = function( steps, name, namifier ){
         this.steps  = steps;
         lib.TGClass.call(this, this.getTones(), name || "unnamed scale class", namifier);
+        this.BuildType = lib.Scale;
     };
         lib.ScaleClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ScaleClass.prototype.constructor = lib.ScaleClass;
@@ -459,41 +464,23 @@ Array.prototype.injectArray = function( index, arr ) {
             return relative_tones;
         };
         
-        lib.ScaleClass.prototype.buildScale = function( key, namifier ){
-            var useNameFunc = namifier || this.nameFunc;
-            return new lib.Scale( this.getTones(key), useNameFunc(this, key) );
+        lib.ScaleClass.prototype.extractChordClass = function( degrees, name, namifier ){
+            return new lib.ChordClass( lib.PickSequence( this.intervals, lib.Shift(degrees, -1), true ), name, namifier || (function(sc){
+                return function(tgc, k){
+                    return lib.LetterizeNumber(k) + " " + sc.name + " " + tgc.name;
+                };
+            })(this));
         };
         
     // When defining a Chord Class, degrees are specified as normally read rather than
     // how ToneGroup.prototype.pickTones wants them.
     // (1 represents the root, 3 represents 2 above the root.)
     lib.ChordClass = function( semitones, name, namifier ){
-        var sts = []
-        semitones.forEach(function(ele){
-           this.push(ele - 1); 
-        }, sts);
-        lib.TGClass.call(this, sts, name || "unnamed chord class", namifier || function( cc, scale ){return scale.name + " " + name;});
+        lib.TGClass.call(this, semitones, name || "unnamed chord class", namifier);
+        this.BuildType = lib.Chord;
     };
         lib.ChordClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ChordClass.prototype.constructor = lib.ChordClass;
-        
-        // there should be another function, or this should be restructured
-        // such that chords can be created like scales;
-        // independent from scales, based purely off difference between
-        // tones for each.
-        lib.ChordClass.prototype.buildChord = function( definer, namifier, key ){
-            var scale;
-            if( definer instanceof lib.Scale ){
-                if(key) console.debug("ChordClass.buildChord: key does nothing with built scale");
-                scale = definer;
-            }
-            else if( definer instanceof lib.ScaleClass ){
-                if(!key) console.debug("ChordClass.buildChord: key should help class define scale");
-                scale = definer.buildScale(key);
-            }
-            var useNameFunc = namifier || this.nameFunc;
-            return new lib.Chord( definer.pickDegrees( this.intervals, true ), useNameFunc(this, definer));
-        };
     
     lib.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
         new lib.Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],  "chromatic 12 tone"), // chromatic (all 12 tones)
@@ -551,7 +538,7 @@ Array.prototype.injectArray = function( index, arr ) {
             }
             
             if( !(this.isLeaf()) ){
-                (function playSequential( nde, index){
+                (function playSequential( nde, index ){
                     //console.log("playing ", nde, " index ", index);
                     nde.value[index].play( controller, channel, volume );
                     if( index < nde.value.length - 1 ){
