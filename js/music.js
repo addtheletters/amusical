@@ -85,9 +85,9 @@ Array.prototype.injectArray = function( index, arr ) {
     
     lib.PlayNote = function( midi_controller, channel, note, velocity, duration, delay ){
         //console.log(midi_controller);
-        midi_controller.setVolume(0, velocity);
-        midi_controller.noteOn(0, note, velocity, delay);
-        midi_controller.noteOff(0, note, delay + duration);
+        midi_controller.setVolume(channel, velocity);
+        midi_controller.noteOn(channel, note, velocity, delay || 0);
+        midi_controller.noteOff(channel, note, delay + duration);
     };
 
     lib.ParseLetter = function( letr ){
@@ -214,10 +214,6 @@ Array.prototype.injectArray = function( index, arr ) {
             return this.tones[0];
         };
         
-        // lib.ToneGroup.prototype.getReverse = function(){
-        //     return new lib.ToneGroup( this.reverser(this.tones), this.name + " reversed", this.type_id );  
-        // };
-        
         // TODO see if necessary, Scale has a more useful function
         lib.ToneGroup.prototype.locateTone = function( tn ){
             return this.tones.indexOf(tn);
@@ -262,86 +258,81 @@ Array.prototype.injectArray = function( index, arr ) {
             END_LOWEST      : {value:-2, name:"End is Lowest", strictness:"None"},
             END_HIGHER      : {value:1, name:"End is Higher than Start", strictness:"None"},  
             END_LOWER       : {value:-1, name:"End is Lower than Start", strictness:"None"},
-            //LOOSE_ASCEND    : {value:1, name:"Ascending",   strictness:"Loose"}, // 2/3 majority of notes are increasing in pitch
-            //LOOSE_DESCEND   : {value:-1, name:"Descending", strictness:"Loose"}, // 2/3 majority of notes are decreasing in pitch
             INDETERMINATE   : {value:0, name:"Indeterminate", strictness:"None"} // no strict or general pattern to tone changes
         });
-    
-    // do something useful
-    lib.ToneGroup.verifyDir = function( sequence ){
-        if(!(sequence instanceof Array)){
-            console.debug("ToneGroup.verifyDir: sequence was not an array");
-        }
-        var bds = lib.ToneGroup.bounds(sequence);
-        var uptune  = 0;
-        var downtune = 0;
-        var neutral = 0;
-        for( var i = 1; i < sequence.length; i++ ){
-            var tone_delta = sequence[i] - sequence[i-1];
-            if( tone_delta > 0) uptune ++;
-            if( tone_delta < 0) downtune ++;
-            if( tone_delta == 0) neutral ++;
-        }
-        if(neutral > 0){
-            console.debug("ToneGroup.verifyDir: sequence contains elements of no variation from the previous, count:", neutral);
-            console.debug("Scales should not have repeated tones!");
-        }
-        if( uptune == 0 && downtune == 0 ){
-            //console.log("Indet with no up or down...");
-            return lib.ToneGroup.DIRECTION.INDETERMINATE;
-        }
-        if( uptune > 0 ){
-            //console.log("Uptunes exist.");
-            if(downtune == 0){
-                return lib.ToneGroup.DIRECTION.STRICT_ASCEND;
+        
+        // do something useful
+        lib.ToneGroup.prototype.verifyDir = function(){
+            var bds = this.bounds();
+            var uptune  = 0;
+            var downtune = 0;
+            var neutral = 0;
+            for( var i = 1; i < this.tones.length; i++ ){
+                var tone_delta = this.tones[i] - this.tones[i-1];
+                if( tone_delta > 0) uptune ++;
+                if( tone_delta < 0) downtune ++;
+                if( tone_delta == 0) neutral ++;
             }
-            else if(bds.end == bds.max){
-                return lib.ToneGroup.DIRECTION.END_HIGHEST;
+            if(neutral > 0){
+                console.debug("ToneGroup.verifyDir: sequence contains elements of no variation from the previous, count:", neutral);
+                console.debug("Scales should not have repeated tones!");
             }
-            else if(bds.end > bds.begin){
-                 return lib.ToneGroup.DIRECTION.END_HIGHER;
+            if( uptune == 0 && downtune == 0 ){
+                //console.log("Indet with no up or down...");
+                return lib.ToneGroup.DIRECTION.INDETERMINATE;
             }
+            if( uptune > 0 ){
+                //console.log("Uptunes exist.");
+                if(downtune == 0){
+                    return lib.ToneGroup.DIRECTION.STRICT_ASCEND;
+                }
+                else if(bds.end == bds.max){
+                    return lib.ToneGroup.DIRECTION.END_HIGHEST;
+                }
+                else if(bds.end > bds.begin){
+                    return lib.ToneGroup.DIRECTION.END_HIGHER;
+                }
+            }
+            if( downtune > 0 ){
+                //console.log("Downtunes exist.");
+                if(uptune == 0){
+                    return lib.ToneGroup.DIRECTION.STRICT_DESCEND;
+                }
+                else if(bds.end == bds.min){
+                    return lib.ToneGroup.DIRECTION.END_LOWEST;
+                }
+                else if(bds.end < bds.begin){
+                    return lib.ToneGroup.DIRECTION.END_LOWER;
+                }
+            }
+            //console.log("Indet with no other traits");
+            return lib.ToneGroup.DIRECTION.INDETERMINATE;        
         }
-        if( downtune > 0 ){
-            //console.log("Downtunes exist.");
-            if(uptune == 0){
-                return lib.ToneGroup.DIRECTION.STRICT_DESCEND;
-            }
-            else if(bds.end == bds.min){
-                return lib.ToneGroup.DIRECTION.END_LOWEST;
-            }
-            else if(bds.end < bds.begin){
-                return lib.ToneGroup.DIRECTION.END_LOWER;
-            }
+        
+        // check if ends on same octave as start, reports how many octaves are spanned and in what direction
+        lib.ToneGroup.prototype.bounds = function(){
+            return {
+                begin:  this.tones[0],
+                end:    this.tones[this.tones.length - 1],
+                min:    Math.min.apply(null,this.tones),
+                max:    Math.max.apply(null,this.tones)
+            };
         }
-        //console.log("Indet with no other traits");
-        return lib.ToneGroup.DIRECTION.INDETERMINATE;        
-    }
-    
-    // check if ends on same octave as start, reports how many octaves are spanned and in what direction
-    lib.ToneGroup.bounds = function( sequence ){
-        return {
-            begin:  sequence[0],
-            end:    sequence[sequence.length - 1],
-            min:    Math.min.apply(null,sequence),
-            max:    Math.max.apply(null,sequence)
-        };
-    }
+        
+        lib.ToneGroup.prototype.checkBounds = function( root ){
+            var bds = this.bounds();
+            if( root != bds.begin ){
+                console.debug("ToneGroup.checkBounds: sequence does not begin on root tone");
+            }
+            console.debug( "ToneGroup.checkBounds: sequence begins with " + lib.LetterizeNumber(bds.begin) + ",", lib.ToneGroup.verifyOctave(bds.begin, root), "octaves from the root octave" );
+            console.debug( "ToneGroup.checkBounds: sequence ends with " + lib.LetterizeNumber(bds.end) + ",", lib.ToneGroup.verifyOctave(bds.end, root), "octaves from the root octave" );
+            console.debug( "ToneGroup.checkBounds: sequence max is " + lib.LetterizeNumber(bds.max) + ",", lib.ToneGroup.verifyOctave(bds.max, root), "octaves from the root octave" );
+            console.debug( "ToneGroup.checkBounds: sequence min is " + lib.LetterizeNumber(bds.min) + ",", lib.ToneGroup.verifyOctave(bds.min, root), "octaves from the root octave" );
+        }
     
     // how many octaves is note away from the octave defined from root to 12 tones higher?
     lib.ToneGroup.verifyOctave = function( note, root ){
         return Math.floor( (note - root) / lib.NUM_TONES );
-    }
-    
-    lib.ToneGroup.checkBounds = function( sequence, root ){
-        var bds = lib.ToneGroup.bounds(sequence);
-        if( root != bds.begin ){
-            console.debug("ToneGroup.checkBounds: sequence does not begin on root tone");
-        }
-        console.debug( "ToneGroup.checkBounds: sequence begins with " + lib.LetterizeNumber(bds.begin) + ",", lib.ToneGroup.verifyOctave(bds.begin, root), "octaves from the root octave" );
-        console.debug( "ToneGroup.checkBounds: sequence ends with " + lib.LetterizeNumber(bds.end) + ",", lib.ToneGroup.verifyOctave(bds.end, root), "octaves from the root octave" );
-        console.debug( "ToneGroup.checkBounds: sequence max is " + lib.LetterizeNumber(bds.max) + ",", lib.ToneGroup.verifyOctave(bds.max, root), "octaves from the root octave" );
-        console.debug( "ToneGroup.checkBounds: sequence min is " + lib.LetterizeNumber(bds.min) + ",", lib.ToneGroup.verifyOctave(bds.min, root), "octaves from the root octave" );
     }
     
     lib.Chord = function( tones, name ){
@@ -354,7 +345,8 @@ Array.prototype.injectArray = function( index, arr ) {
         
         lib.Chord.prototype.play = function( controller, channel, volume, duration, delay ){
             for(var i = 0; i < this.tones.length; i++){
-               lib.PlayNote( controller, channel, this.tones[i], volume, duration, delay );
+                console.debug("Chord.play: playing tone", this.tones[i]);
+                lib.PlayNote( controller, channel, this.tones[i], volume, duration, delay );
             }
         };
         
@@ -437,7 +429,7 @@ Array.prototype.injectArray = function( index, arr ) {
     lib.TGClass = function( intervals, name, namifier ){
         this.intervals = intervals;
         this.name = name || "unnamed tone group class";
-        this.nameFunc = namifier || function( sc, k ){ return lib.LetterizeNumber(k) + " " + sc.name; };
+        this.nameFunc = namifier || function( tgc, k ){ return lib.LetterizeNumber(k) + " " + tgc.name; };
     };
         lib.TGClass.getIntervals = function( shift ){
             var ivs = [];
@@ -479,13 +471,27 @@ Array.prototype.injectArray = function( index, arr ) {
         semitones.forEach(function(ele){
            this.push(ele - 1); 
         }, sts);
-        lib.TGClass.call(this, sts, name || "unnamed chord class", namifier);
+        lib.TGClass.call(this, sts, name || "unnamed chord class", namifier || function( cc, scale ){return scale.name + " " + name;});
     };
         lib.ChordClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ChordClass.prototype.constructor = lib.ChordClass;
         
-        lib.ChordClass.prototype.buildChord = function( scale ){
-            return scale.pickDegrees( this.intervals, true );
+        // there should be another function, or this should be restructured
+        // such that chords can be created like scales;
+        // independent from scales, based purely off difference between
+        // tones for each.
+        lib.ChordClass.prototype.buildChord = function( definer, namifier, key ){
+            var scale;
+            if( definer instanceof lib.Scale ){
+                if(key) console.debug("ChordClass.buildChord: key does nothing with built scale");
+                scale = definer;
+            }
+            else if( definer instanceof lib.ScaleClass ){
+                if(!key) console.debug("ChordClass.buildChord: key should help class define scale");
+                scale = definer.buildScale(key);
+            }
+            var useNameFunc = namifier || this.nameFunc;
+            return new lib.Chord( definer.pickDegrees( this.intervals, true ), useNameFunc(this, definer));
         };
     
     lib.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
