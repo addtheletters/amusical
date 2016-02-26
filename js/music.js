@@ -85,9 +85,10 @@ Array.prototype.injectArray = function( index, arr ) {
     
     lib.PlayNote = function( midi_controller, channel, note, velocity, duration, delay ){
         //console.log(midi_controller);
+        var realdelay = delay || 0;
         midi_controller.setVolume(channel, velocity);
-        midi_controller.noteOn(channel, note, velocity, delay || 0);
-        midi_controller.noteOff(channel, note, delay + duration);
+        midi_controller.noteOn(channel, note, velocity, realdelay);
+        midi_controller.noteOff(channel, note, realdelay + duration);
     };
 
     lib.ParseLetter = function( letr ){
@@ -345,7 +346,7 @@ Array.prototype.injectArray = function( index, arr ) {
         
         lib.Chord.prototype.play = function( controller, channel, volume, duration, delay ){
             for(var i = 0; i < this.tones.length; i++){
-                console.debug("Chord.play: playing tone", this.tones[i]);
+                //console.log("Chord.play: playing tone", this.tones[i]);
                 lib.PlayNote( controller, channel, this.tones[i], volume, duration, delay );
             }
         };
