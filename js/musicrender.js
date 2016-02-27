@@ -28,12 +28,11 @@ function renderNode( node, width, zI ){
         
         ret.classList.add("musicnote");
         ret.onclick = function(){
-            console.log("Clicked a node. Wow. What a terrible person.");
-            console.log(node.value);
+            //console.debug("Clicked a node. Wow. What a terrible person.");
+            //console.debug(node.value);
             
             document.getElementById("infobox1").innerText = node.value;
-            //playNote(0, node.value.num, 127, node.getDuration(), 0);
-            playNode(node, 0, 127);
+            node.play(MIDI, 0, 127);
         }
         ret.onmouseover = function(){
             ret.oldZI = ret.style.zIndex;
@@ -47,7 +46,7 @@ function renderNode( node, width, zI ){
         var lbl2 = document.createElement("span");
         lbl1.classList.add("musiclabel");
         lbl2.classList.add("musiclabel");
-        lbl1.appendChild(document.createTextNode(node.value.num));
+        lbl1.appendChild(document.createTextNode(node.value.getNum()));
         lbl2.appendChild(document.createTextNode(node.value.toSPN()));
         ret.appendChild(lbl1);
         ret.appendChild(document.createElement("br"));
