@@ -115,14 +115,16 @@
 
     function newSection() {
         var noda = music.BuildRhythm(4, music.PATTERNS, 10, 5);
+        /*
         var sca = music.scaleClasses.randomChoice().build(Math.floor(Math.random()*music.getNoteOrder().length));
         music.RandomTonalize(noda, sca.pickTones());
-        
-        //music.ScaleTonalize( noda,  );
+        */
+        var fillers = music.CreateFillers(music.scaleClasses.randomChoice(), Math.floor(Math.random()*music.getNoteOrder().length));
+        music.ScaleTonalize( noda, fillers );
         
         showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
-        showInfo(sca, 0); // make scales a js object so they can be named / categorized?
+        showInfo(fillers, 0); // make scales a js object so they can be named / categorized?
         dispnodes.push(noda);
         last_shown = noda;
         testRender();

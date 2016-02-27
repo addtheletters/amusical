@@ -1,23 +1,7 @@
 
+var music = music || {};
 
-/*
-var note_association = {
-	0:"C", // middle C. SPN is C4
-	1:"C#",
-	2:"D",
-	3:"D#",
-	4:"E",
-	5:"F",
-	6:"F#",
-	7:"G",
-	8:"G#",
-	9:"A",
-	10:"A#",
-	11:"B"
-};
-*/
-
-var music = {};
+// TODO split into more manageable modules
 
 // utility stuff here. Good structuring would have these placed somewhere much better. Eh.
 
@@ -57,7 +41,6 @@ Array.prototype.injectArray = function( index, arr ) {
     lib.NUM_TONES = 12;
     lib.DEFAULT_OCTAVE = 4;
     lib.ZERO_OCTAVE = -1; // at what octave number is C = 0?
-    lib.LOOSENESS_CUTOFF = 0.66; // this is lazy and sort of unnecessary, should probably be removed
 
     lib.note_order = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
@@ -82,6 +65,23 @@ Array.prototype.injectArray = function( index, arr ) {
         "♭":-1,
         "♮":0 // for completeness
     };
+    
+    
+    // BPM = beats per measure
+    // beatVal = 1/note val, (quarter, eighth)
+
+    // lib.usableBeatVals = [ 1, 1/2, 1/4, 1/8, 1/16 ];
+    // lib.usableBPM = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
+
+    lib.PATTERNS = [
+        [1, 1, 1, 1],   // this one shouldn't even be necessary
+        [1, 1, 1],      // but these probaby help the melodies be more sane until
+        [1, 1],         // the generation method is overhauled
+        [2, 1],
+        [1, 2],
+        //[3, 1],
+        //[1, 3], 
+    ];
     
     lib.PlayNote = function( midi_controller, channel, note, velocity, duration, delay ){
         //console.log(midi_controller);
@@ -241,6 +241,18 @@ Array.prototype.injectArray = function( index, arr ) {
             return this.tones[0];
         };
         
+        //multioctave: bool: get the degree, unmodded. If outside the specified base octave, get an accurate measure of how far out
+        lib.ToneGroup.prototype.findTone = function( tone, multioctave ){
+            var ind = this.tones.indexOf( mod(tone, lib.NUM_TONES) ) ;
+            if( ind < 0 ) return null;
+            else if( multioctave ){ // frankly this technique is super useful, needs to be reversedish in pickDegree and then 
+            // transplanted into pickTones, if I decide ToneGroup should have that functionality and not just Scale. Hm, maybe?
+                var octs = Math.floor(tone / lib.NUM_TONES); // how many octaves away?
+                ind = ind + octs * this.tones.length;
+            }
+            return ind;
+        };
+        
         // notice that the root, normally notated degree 1, corresponds to
         // an argument given of zero
         // a perfect fifth corresponds to a degree given of 4
@@ -258,6 +270,7 @@ Array.prototype.injectArray = function( index, arr ) {
             for( var i = 0; i < amount; i++){
                 tns.push( this.tones[ mod(start + i, this.tones.length) ] );
             }
+            return tns;
         };
         
         lib.ToneGroup.DIRECTION = Object.freeze({
@@ -359,8 +372,7 @@ Array.prototype.injectArray = function( index, arr ) {
             }
         };
         
-    lib.Scale = function( sequence, name, unidir ){
-        this.unidir = unidir;
+    lib.Scale = function( sequence, name ){
         lib.ToneGroup.call(this, sequence, name || "unnamed scale", "Scale");
         // if the incoming tone sequence ends with a repeat of the first tone, remove the repeat
         if( lib.TonesEquivalent( this.tones[0], this.tones[this.tones.length-1]) ){
@@ -373,19 +385,9 @@ Array.prototype.injectArray = function( index, arr ) {
         
         lib.Scale.prototype.ordered = true;
         
-        //multioctave: bool: get the degree, unmodded. If outside the specified base octave, get an accurate measure of how far out
-        lib.Scale.prototype.findDegree = function( tone, multioctave ){
-            var ind = this.tones.indexOf( mod(tone, lib.NUM_TONES) ) ;
-            if( ind < 0 ) return null;
-            else if( multioctave ){ // frankly this technique is super useful, needs to be reversedish in pickDegree and then 
-            // transplanted into pickTones, if I decide ToneGroup should have that functionality and not just Scale. Hm, maybe?
-                var octs = Math.floor(tone / lib.NUM_TONES); // how many octaves away?
-                ind = ind + octs * this.tones.length;
-            }
-            return ind;
-        };
+        lib.Scale.prototype.findDegree = this.findTone;
         
-        //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findDegree?
+        //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findTone?
         lib.Scale.prototype.pickDegree = function( degree, multioctave ){
             return lib.PickOne(this.tones, degree, multioctave);
         };
@@ -501,6 +503,15 @@ Array.prototype.injectArray = function( index, arr ) {
         new lib.ScaleClass([2, 1, 2, 2, 1, 3], "harmonic minor")
     ];
     
+    lib.CreateFillers = function(sc, key){
+        var ret = [];
+        var base_scale = sc.build(key);
+        var cc_major = sc.extractChordClass([1, 3, 5], "triad");
+        ret.push(base_scale);
+        ret.push(cc_major.build(key));
+        return ret;
+    };
+    
     lib.MusicNode = function( duration, value, parent ){
         this.duration = duration || null;
         this.parent = parent || null; // apprently naming things parent is a bad idea
@@ -530,10 +541,7 @@ Array.prototype.injectArray = function( index, arr ) {
         }
         
         lib.MusicNode.prototype.play = function( controller, channel, volume ){
-            //console.log("beginning play of ", this);
             if(this.domElement){
-                //console.log("lighten!");
-                //console.log(this.domElement);
                 this.domElement.classList.add("playing");
             }
             
@@ -619,11 +627,6 @@ Array.prototype.injectArray = function( index, arr ) {
             }
             
             if(!(this.isLeaf())){
-                /*var temp = 0;
-                for(var i = 0; i < this.value.length; i++){
-                    temp += this.value[i].getDuration();
-                }
-                return temp;*/
                 var useArray;
                 if(useSequence){
                     useArray = this.sequence;
@@ -711,6 +714,7 @@ Array.prototype.injectArray = function( index, arr ) {
             }
             else{
                 // this.value should be non-array. perhaps also empty array? though that implies intent to fill later
+                console.log("Tune: tuning to", tone);
                 this.value = new lib.Note( tone );
             }
         }
@@ -719,14 +723,20 @@ Array.prototype.injectArray = function( index, arr ) {
         lib.MusicNode.prototype.ToneFill = function(filler, noRandomDuplicates){
             if( this.isLeaf() ){
                 console.debug("MusicNode: ToneFill: node is a leaf, filling with filler key");
-                this.Tune(filler.getKey());
+                this.Tune( lib.ShiftOctave(this.getKey()));
+                return;
             }
             
             var tns;
             if( filler.ordered ){
-                tns = filler.continueFrom( filler.locateTone(this.value.getKey()), this.value.length  );
+                console.log("ToneFill: this value is", this.value);
+                
+                tns = filler.continueFrom( filler.findTone(this.getKey()), this.value.length  ); // TODO this
+                
+                console.log("ToneFill: tns is", tns);
                 for( var i = 0; i < this.value.length; i++){
-                    this.value[i].Tune( tns[ mod(i, tns.length) ] ); // mod here should not be necessary
+                    console.log("ToneFill: tuning note index", i, "to", tns[mod(i, tns.length)]);
+                    this.value[i].Tune( lib.ShiftOctave(tns[ mod(i, tns.length) ]) ); // mod here should not be necessary
                 }
             }
             else{
@@ -736,7 +746,8 @@ Array.prototype.injectArray = function( index, arr ) {
                     if( noRandomDuplicates && tns.length > 1 ){
                         tns.splice( tns.indexOf(choice), 1); // option to disallow duplicate choices
                     }
-                    this.value[i].Tune( choice );
+                    console.log("ToneFill: tuning note index", i, "to", choice);
+                    this.value[i].Tune( lib.ShiftOctave(choice) );
                 }
             }
         }
@@ -764,23 +775,6 @@ Array.prototype.injectArray = function( index, arr ) {
             }
             return leaves;
         }
-        
-
-    // BPM = beats per measure
-    // beatVal = 1/note val, (quarter, eighth)
-
-    //lib.usableBeatVals = [ 1, 1/2, 1/4, 1/8, 1/16 ];
-    //lib.usableBPM = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
-
-    lib.PATTERNS = [
-        [1, 1, 1, 1],   // this one shouldn't even be necessary
-        [1, 1, 1],      // but these probaby help the melodies be more sane until
-        [1, 1],         // the generation method is overhauled
-        [2, 1],
-        [1, 2],
-        //[3, 1],
-        //[1, 3], 
-    ];
 
     lib.BuildRhythm = function( BPM, patterns, minBeatDuration, complexity ){
         // need to implement minBeatDuration
@@ -870,7 +864,7 @@ Array.prototype.injectArray = function( index, arr ) {
         node.ToneFill(filler);
         for(var i = 0; i < node.value.length; i++){
             // recur on children
-            lib.ScaleTonalize( node.value[i], fillers);//fillers.splice( fillers.indexOf(filler), 1 ) );
+            lib.ScaleTonalize( node.value[i], fillers );//fillers.splice( fillers.indexOf(filler), 1 ) );
         }
     };
     
