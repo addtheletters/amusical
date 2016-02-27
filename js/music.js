@@ -385,7 +385,12 @@ Array.prototype.injectArray = function( index, arr ) {
         
         lib.Scale.prototype.ordered = true;
         
-        lib.Scale.prototype.findDegree = this.findTone;
+        // TODO this
+        lib.Scale.prototype.getReverse = function( tone_modifier ){
+            return;
+        }
+        
+        lib.Scale.prototype.findDegree = lib.ToneGroup.prototype.findTone;
         
         //multioctave: bool: do you want to mod and give out base octave like pickTones currently does, or be unmodded and mesh well with findTone?
         lib.Scale.prototype.pickDegree = function( degree, multioctave ){
@@ -507,6 +512,7 @@ Array.prototype.injectArray = function( index, arr ) {
         var ret = [];
         var base_scale = sc.build(key);
         var cc_major = sc.extractChordClass([1, 3, 5], "triad");
+        // TODO add reverse when implemented
         ret.push(base_scale);
         ret.push(cc_major.build(key));
         return ret;
