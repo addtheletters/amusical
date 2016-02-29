@@ -502,7 +502,7 @@ Array.prototype.injectArray = function( index, arr ) {
     ];
     
     lib.scaleClasses = [
-        new lib.ScaleClass([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "chromatic", function(sc, k){return sc.name;}),
+        //new lib.ScaleClass([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "chromatic", function(sc, k){return sc.name;}),
         new lib.ScaleClass([2, 2, 1, 2, 2, 2], "major"), // the final step is implied to be the return to the root / key of the scale
         new lib.ScaleClass([2, 1, 2, 2, 1, 2], "natural minor"),
         new lib.ScaleClass([2, 1, 2, 2, 1, 3], "harmonic minor")
