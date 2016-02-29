@@ -246,7 +246,7 @@ Array.prototype.injectArray = function( index, arr ) {
             var ind = this.tones.indexOf( mod(tone, lib.NUM_TONES) ) ;
             if( ind < 0 ) return null;
             else if( multioctave ){ // frankly this technique is super useful, needs to be reversedish in pickDegree and then 
-            // transplanted into pickTones, if I decide ToneGroup should have that functionality and not just Scale. Hm, maybe?
+            // transplanted into pickTones, if I decide ToneGroup should have that funct    ionality and not just Scale. Hm, maybe?
                 var octs = Math.floor(tone / lib.NUM_TONES); // how many octaves away?
                 ind = ind + octs * this.tones.length;
             }
@@ -261,15 +261,18 @@ Array.prototype.injectArray = function( index, arr ) {
         };
         
         // start: index of start, not starting val
-        // todo: polymorphism in scale to make the 'looping' with mod
         // change octave up/down if exceeding / going under bounds of tone group
         // depending on whether scale is ascending or descending
         // scale should have a property that says ascending/descending 
-        lib.ToneGroup.prototype.continueFrom = function( start, amount ){
+        lib.ToneGroup.prototype.continueFrom = function( start, amount, wrap ){
+            //console.log("ToneGroup.continueFrom called");
+            //console.log("continuing from", start);
+            //console.log("by", amount);
             var tns = [];
             for( var i = 0; i < amount; i++){
-                tns.push( this.tones[ mod(start + i, this.tones.length) ] );
+                tns.push( lib.PickOne(this.tones, start+i, wrap) );
             }
+            //console.log("returned is", tns);
             return tns;
         };
         
@@ -713,19 +716,17 @@ Array.prototype.injectArray = function( index, arr ) {
             return lib.FillByPattern(this, pattern, noReSeq);
         }
         
-        // TODO test
         lib.MusicNode.prototype.Tune = function( tone ){
             if( !this.isLeaf() ){
                 this.setStructuralKey(tone);
             }
             else{
                 // this.value should be non-array. perhaps also empty array? though that implies intent to fill later
-                console.log("Tune: tuning to", tone);
+                //console.log("Tune: tuning to", tone);
                 this.value = new lib.Note( tone );
             }
         }
         
-        // TODO test
         lib.MusicNode.prototype.ToneFill = function(filler, noRandomDuplicates){
             if( this.isLeaf() ){
                 console.debug("MusicNode: ToneFill: node is a leaf, filling with filler key");
@@ -735,13 +736,15 @@ Array.prototype.injectArray = function( index, arr ) {
             
             var tns;
             if( filler.ordered ){
-                console.log("ToneFill: this value is", this.value);
+                //console.log("ToneFill: this value is", this.value);
+                //console.log("current key is", this.getKey());
+                //console.log("filler is", filler);
+                //console.log("filler found", filler.findTone(this.getKey(), true));
+                tns = filler.continueFrom( filler.findTone(this.getKey(), true), this.value.length, true ); // TODO this
                 
-                tns = filler.continueFrom( filler.findTone(this.getKey()), this.value.length  ); // TODO this
-                
-                console.log("ToneFill: tns is", tns);
+                //console.log("ToneFill: tns is", tns);
                 for( var i = 0; i < this.value.length; i++){
-                    console.log("ToneFill: tuning note index", i, "to", tns[mod(i, tns.length)]);
+                    //console.log("ToneFill: tuning note index", i, "to", tns[mod(i, tns.length)]);
                     this.value[i].Tune( lib.ShiftOctave(tns[ mod(i, tns.length) ]) ); // mod here should not be necessary
                 }
             }
@@ -752,7 +755,7 @@ Array.prototype.injectArray = function( index, arr ) {
                     if( noRandomDuplicates && tns.length > 1 ){
                         tns.splice( tns.indexOf(choice), 1); // option to disallow duplicate choices
                     }
-                    console.log("ToneFill: tuning note index", i, "to", choice);
+                    //console.log("ToneFill: tuning note index", i, "to", choice);
                     this.value[i].Tune( lib.ShiftOctave(choice) );
                 }
             }
@@ -858,7 +861,6 @@ Array.prototype.injectArray = function( index, arr ) {
         }
     };
     
-    // TODO finish / test this
     // algo goes top to bottom choosing a 'root' tone for node in *value* order
     // these root tones are assigned according to scales / chord sequences, chords can jump randomly but scales must be ordered?
     // then each child is gone into, and a similar process can occur using the assigned 'root' as the base for scale or chord choice
