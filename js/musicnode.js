@@ -149,7 +149,7 @@ var music = music || {};
                 node.parent = this;
                 this.value.push(node);
                 if(!dNSeq){
-                    this.reSequence(); //node);
+                    this.reSequence();
                 }
                 else{
                     console.debug("MusicNode (addInnerNode): skipped resequencing.");
@@ -166,13 +166,10 @@ var music = music || {};
         lib.MusicNode.prototype.reSequence = function(){
             // this function is supposed to receive the node that was changed 
             // as an argument and then surgically alter the sequences of parents
-            // until all are fixed.
-
-            //this.sequence = this.sequence.concat(node.getSLList());
-
-            // haha lol kludge fix. very slow and inefficient, will fix later
-            // if it becomes an issue
-
+            // until all are fixed. Currently, it functions properly, but is
+            // very far away in efficiency from the optimal method. 
+            // If speed becomes a concern, implementing a faster resequence
+            // could be useful. Probably will need to review some Algo coursework to achieve that, though.
             this.sequence	= this.getSLList();
             if(this.parent){
                 this.parent.reSequence(this);
@@ -217,16 +214,9 @@ var music = music || {};
             
             var tns;
             if( filler.ordered ){
-                //console.log("ToneFill: this value is", this.value);
-                //console.log("current key is", this.getKey());
-                //console.log("filler is", filler);
-                //console.log("filler found", filler.findTone(this.getKey(), true));
-                
                 tns = filler.continueFrom( filler.findTone(this.getKey(), true), this.value.length, true ); // TODO this
                 
-                //console.log("ToneFill: tns is", tns);
                 for( var i = 0; i < this.value.length; i++){
-                    //console.log("ToneFill: tuning note index", i, "to", tns[mod(i, tns.length)]);
                     this.value[i].Tune( lib.ShiftOctave(tns[ mod(i, tns.length) ]) ); // mod here should not be necessary
                 }
             }
@@ -237,7 +227,6 @@ var music = music || {};
                     if( noRandomDuplicates && tns.length > 1 ){
                         tns.splice( tns.indexOf(choice), 1); // option to disallow duplicate choices
                     }
-                    //console.log("ToneFill: tuning note index", i, "to", choice);
                     this.value[i].Tune( lib.ShiftOctave(choice) );
                 }
             }

@@ -11,11 +11,11 @@ var music = music || {};
     
     // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
     
-    lib.TGClass = function( intervals, name, namifier ){
+    lib.TGClass = function( intervals, name, namifier, buildtype ){
         this.intervals = intervals;
         this.name = name || "unnamed tone group class";
         this.nameFunc = namifier || function( tgc, k ){ return lib.LetterizeNumber(k) + " " + tgc.name; };
-        this.BuildType = null;
+        this.BuildType = buildtype;
     };
         lib.TGClass.prototype.getIntervals = function( rootKey ){
             var ivs = [];
@@ -36,8 +36,7 @@ var music = music || {};
         
     lib.ScaleClass = function( steps, name, namifier ){
         this.steps  = steps;
-        lib.TGClass.call(this, this.getTones(), name || "unnamed scale class", namifier);
-        this.BuildType = lib.Scale;
+        lib.TGClass.call(this, this.getTones(), name || "unnamed scale class", namifier, lib.Scale);
     };
         lib.ScaleClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ScaleClass.prototype.constructor = lib.ScaleClass;
@@ -62,12 +61,12 @@ var music = music || {};
             })(this));
         };
         
-    // When defining a Chord Class, degrees are specified as normally read rather than
+    // When defining a Chord Class using extractChordClass,
+    // degrees are specified as normally read rather than
     // how ToneGroup.prototype.pickTones wants them.
     // (1 represents the root, 3 represents 2 above the root.)
     lib.ChordClass = function( semitones, name, namifier ){
-        lib.TGClass.call(this, semitones, name || "unnamed chord class", namifier);
-        this.BuildType = lib.Chord;
+        lib.TGClass.call(this, semitones, name || "unnamed chord class", namifier, lib.Chord);
     };
         lib.ChordClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ChordClass.prototype.constructor = lib.ChordClass;
