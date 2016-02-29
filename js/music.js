@@ -3,178 +3,8 @@ var music = music || {};
 
 // TODO split into more manageable modules
 
-// utility stuff here. Good structuring would have these placed somewhere much better. Eh.
-
-function mod(a, b){
-    return ((a % b) + b) % b;
-}
-
-String.prototype.repeat = function( num ){
-	if(num <= 0){
-		return "";
-	}
-    return new Array( num + 1 ).join( this );
-};
-
-Array.prototype.sum = function( valueFunc ){
-	valueFunc = valueFunc || function( item ){
-		return item;
-	};
-	var total = 0;
-	for(var i=0,n=this.length; i<n; ++i)
-	{
-	    total += valueFunc(this[i]);
-	}
-	return total;
-};
-
-Array.prototype.randomChoice = function(){
-	return this[Math.floor( Math.random() * this.length )];
-};
-
-Array.prototype.injectArray = function( index, arr ) {
-    return this.slice( 0, index ).concat( arr ).concat( this.slice( index ) );
-};
-
 (function(lib){
-
-    lib.NUM_TONES = 12;
-    lib.DEFAULT_OCTAVE = 4;
-    lib.ZERO_OCTAVE = -1; // at what octave number is C = 0?
-
-    lib.note_order = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-
-    lib.getNoteOrder = function(){
-        return this.note_order;
-    };
-
-    lib.letter_vals = {
-        "C":0,
-        "D":2,
-        "E":4,
-        "F":5,
-        "G":7,
-        "A":9,
-        "B":11
-    };
-
-    lib.accidental_vals = {
-        "#":1, // easier to type
-        "b":-1,
-        "♯":1, // actual character
-        "♭":-1,
-        "♮":0 // for completeness
-    };
     
-    
-    // BPM = beats per measure
-    // beatVal = 1/note val, (quarter, eighth)
-
-    // lib.usableBeatVals = [ 1, 1/2, 1/4, 1/8, 1/16 ];
-    // lib.usableBPM = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
-
-    lib.PATTERNS = [
-        [1, 1, 1, 1],   // this one shouldn't even be necessary
-        [1, 1, 1],      // but these probaby help the melodies be more sane until
-        [1, 1],         // the generation method is overhauled
-        [2, 1],
-        [1, 2],
-        //[3, 1],
-        //[1, 3], 
-    ];
-    
-    lib.PlayNote = function( midi_controller, channel, note, velocity, duration, delay ){
-        //console.log(midi_controller);
-        var realdelay = delay || 0;
-        midi_controller.setVolume(channel, velocity);
-        midi_controller.noteOn(channel, note, velocity, realdelay);
-        midi_controller.noteOff(channel, note, realdelay + duration);
-    };
-
-    lib.ParseLetter = function( letr ){
-        if( typeof letr !== 'string' ){
-            console.debug("ParseLetter: non-string letter designation, returning original");
-            return letr;
-        }
-        if(letr.length < 1){
-            console.debug("ParseLetter: unable to parse letter notation (too short)");
-            return;
-        }
-        var base = letr[0];
-        var accd = letr.slice(1);
-        // supports multiple stacking accidentals
-        var modifier = accd.split("").sum(function( acc ){
-            return lib.accidental_vals[acc] || 0;
-        });
-        return lib.letter_vals[base] + modifier;
-    };
-    
-    lib.ParseStringSPN = function( spn_str ){
-        return (new lib.Note(spn_str)).getNum();//(new lib.SPN()).fromString(spn_str).toNum();
-    };
-    
-    // shifts a tone (assuming it placed relative to a middle-C of 0)
-    // according to the set default / given and zero octaves
-    // with no octave argument, shifts to the default octave
-    lib.ShiftOctave = function( tone, octave ){
-        var oct = octave || lib.DEFAULT_OCTAVE;
-        return lib.NUM_TONES * (oct - lib.ZERO_OCTAVE) + mod(tone, lib.NUM_TONES);
-    };
-    
-    lib.Shift = function( originals, amount ){
-        var shifted = [];
-        originals.forEach(function(ele){
-            this.push(ele + amount); 
-        }, shifted);
-        return shifted;
-    };
-    
-    lib.PickOne = function( sequence, index, nowrap ){
-        var ret = sequence[mod(index, sequence.length)];
-        if( nowrap ){
-            var octs = Math.floor(index / sequence.length);
-            ret = ret + octs * lib.NUM_TONES;
-        }
-        return ret;
-    };
-    
-    lib.PickSequence = function( sequence, indices, nowrap ){
-        if(!indices)  return sequence;
-        var ret = [];
-        for( var i = 0; i < indices.length; i++ ){
-            ret.push(lib.PickOne(sequence, indices[i], nowrap));
-        }
-        return ret;
-    }
-    
-    lib.LetterizeNumber = function( num ){
-        if( typeof num !== 'number' ){
-            console.debug("unable to letterize non-number");
-            return num;
-        }
-        return lib.getNoteOrder()[mod(num, lib.NUM_TONES)];
-    };
-    
-    lib.NumberizeSequence = function(sequence){
-        var cpy = sequence.slice();
-        for( var i = 0; i < cpy.length; i++ ){
-            cpy[i] = lib.ParseLetter(sequence[i]);
-        }
-        return cpy;
-    };
-    
-    lib.LetterizeSequence = function(sequence){
-        var cpy = sequence.slice();
-        for( var i = 0; i < cpy.length; i++ ){
-            cpy[i] = lib.LetterizeNumber(sequence[i]);
-        }
-        return cpy;
-    };
-    
-    lib.TonesEquivalent = function( t1, t2 ){
-        return mod(t1, lib.getNoteOrder().length) === mod(t2, lib.getNoteOrder().length);
-    };
-
     lib.Note = function( arg ){
         if( typeof arg === 'string' ){
             this.fromSPN(arg);
@@ -740,6 +570,7 @@ Array.prototype.injectArray = function( index, arr ) {
                 //console.log("current key is", this.getKey());
                 //console.log("filler is", filler);
                 //console.log("filler found", filler.findTone(this.getKey(), true));
+                
                 tns = filler.continueFrom( filler.findTone(this.getKey(), true), this.value.length, true ); // TODO this
                 
                 //console.log("ToneFill: tns is", tns);
@@ -852,9 +683,6 @@ Array.prototype.injectArray = function( index, arr ) {
 
     lib.RandomTonalize = function( node, tones ){
         var tmp_octave_range = 2;
-        if(node.sequence.length <= 0){
-            console.debug("node is nontonalizable");
-        }
         for(var i = 0; i < node.sequence.length; i++){
             var ind = (Math.floor(Math.random() * tmp_octave_range * tones.length) - tmp_octave_range * tones.length * 1/2);
             node.sequence[i].value = new lib.Note( lib.ShiftOctave( tones[mod(ind, tones.length)], lib.DEFAULT_OCTAVE + Math.floor(ind / tones.length) ) ) ;
@@ -865,9 +693,6 @@ Array.prototype.injectArray = function( index, arr ) {
     // these root tones are assigned according to scales / chord sequences, chords can jump randomly but scales must be ordered?
     // then each child is gone into, and a similar process can occur using the assigned 'root' as the base for scale or chord choice
     lib.ScaleTonalize = function( node, fillers ){
-        if(node.sequence.length <= 0){
-            console.debug("node is nontonalizable");
-        }
         var filler = fillers.randomChoice();
         node.ToneFill(filler);
         for(var i = 0; i < node.value.length; i++){

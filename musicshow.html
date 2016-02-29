@@ -12,6 +12,8 @@
     <script src="inc/shim/Base64binary.js" type="text/javascript"></script>
     <script src="inc/shim/WebAudioAPI.js" type="text/javascript"></script>
     
+    <script src="js/musicconst.js">/* constants for music library */</script>
+    <script src="js/musicutil.js">/* utility functions and vanilla extensions for music library */</script>
     <script src="js/music.js">/* music node stuff */</script>
     <script src="js/colors.js">/* color functions */</script>
     <script src="js/plotting.js">/* extremely simple canvas drawing */</script>
@@ -124,7 +126,7 @@
         
         showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
-        showInfo(fillers, 0); // make scales a js object so they can be named / categorized?
+        showInfo(fillers, 0);
         dispnodes.push(noda);
         last_shown = noda;
         testRender();
@@ -159,6 +161,6 @@
         <hr>
         <canvas id="drawspace" width="1050" height="200" style="border: 1px solid black"></canvas>
     </div>
-    <span id="version" >v0.14</span>
+    <span id="version" >v0.15</span>
 </body>
 </html>
