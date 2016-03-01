@@ -74,13 +74,38 @@ Array.prototype.injectArray = function( index, arr ) {
         return lib.NUM_TONES * (oct - lib.ZERO_OCTAVE) + mod(tone, lib.NUM_TONES);
     };
     
-    lib.Shift = function( originals, amount ){
+    lib.Shift = function( original, amount ){
         var shifted = [];
-        originals.forEach(function(ele){
+        original.forEach(function(ele){
             this.push(ele + amount); 
         }, shifted);
         return shifted;
     };
+    
+    lib.InvertAll = function( original ){
+        var inverted = [];
+        original.forEach(function(ele){
+            this.push(-1 * ele);
+        }, inverted);
+        return inverted;
+    };
+    
+    lib.VecSum = function( a, b ){
+        if( (!a || !b) || (a.length != b.length)){
+            console.debug("VecSum: attempting to add bad vectors");
+        }
+        var result = [];
+        for(var i = 0; i < Math.max(a.length, b.length); i++){
+            result.push(a[i] + b[i]);
+        }
+        return result;
+    };
+    
+    // tfw javascript'd
+    // "5" + 1
+    // > "51"
+    // "5" - 1
+    // > 4
     
     lib.PickOne = function( sequence, index, nowrap ){
         var ret = sequence[mod(index, sequence.length)];

@@ -11,11 +11,10 @@ var music = music || {};
     
     // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
     
-    lib.TGClass = function( intervals, name, namifier, buildtype ){
+    lib.TGClass = function( intervals, name, namifier ){
         this.intervals = intervals;
         this.name = name || "unnamed tone group class";
         this.nameFunc = namifier || function( tgc, k ){ return lib.LetterizeNumber(k) + " " + tgc.name; };
-        this.BuildType = buildtype;
     };
         lib.TGClass.prototype.getIntervals = function( rootKey ){
             var ivs = [];
@@ -29,17 +28,26 @@ var music = music || {};
         lib.TGClass.prototype.build = function( rootKey, namifier ){
             var root = rootKey || 0;
             var useNameFunc = namifier || this.nameFunc;
-            var ret = new this.BuildType( this.getIntervals(root), useNameFunc(this, root) );
+            var ret = this._builder( this.getIntervals(root), useNameFunc(this, root) );
             ret.builder = this; 
             return ret;
         };
         
-    lib.ScaleClass = function( steps, name, namifier ){
+        lib.TGClass.prototype._builder = function( tones, name ){
+            return new lib.ToneGroup( tones, name );
+        };
+        
+    lib.ScaleClass = function( steps, name, namifier, reverser ){
         this.steps  = steps;
+        this.reverser = reverser;
         lib.TGClass.call(this, this.getTones(), name || "unnamed scale class", namifier, lib.Scale);
     };
         lib.ScaleClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ScaleClass.prototype.constructor = lib.ScaleClass;
+        
+        lib.ScaleClass.prototype._builder = function( tones, name ){
+            return new lib.Scale(tones, name, this.reverser);
+        };
         
         lib.ScaleClass.prototype.getTones = function( rootKey ){
             var relative_tones = [];
@@ -70,5 +78,9 @@ var music = music || {};
     };
         lib.ChordClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ChordClass.prototype.constructor = lib.ChordClass;
+        
+        lib.ChordClass.prototype.builder = function(tones, name){
+            return new lib.Chord(tones, name);
+        };
         
 })(music);

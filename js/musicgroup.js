@@ -149,8 +149,9 @@ var music = music || {};
             }
         };
         
-    lib.Scale = function( sequence, name ){
+    lib.Scale = function( sequence, name, reversal_adjustment ){
         lib.ToneGroup.call(this, sequence, name || "unnamed scale", "Scale");
+        this.r_adj = reversal_adjustment; // stores how to adjust each tone when doing a reverse
         // if the incoming tone sequence ends with a repeat of the first tone, remove the repeat
         if( lib.TonesEquivalent( this.tones[0], this.tones[this.tones.length-1]) ){
             console.debug("Scale: constructor found equivalent first and final tones; truncating for consistency");
@@ -162,10 +163,21 @@ var music = music || {};
         
         lib.Scale.prototype.ordered = true;
         
-        // TODO this
-        lib.Scale.prototype.getReverse = function( tone_modifier ){
-            return;
+        lib.Scale.prototype._getTonesRAdjusted = function(){
+            return this.r_adj ? lib.VecSum(this.tones, this.r_adj) : this.tones;
         }
+        
+        // TODO test
+        lib.Scale.prototype.getReverse = function( rename ){
+            var reseq = this._getTonesRAdjusted();
+            console.log("applying reverser to scale, new tones are", reseq);
+            var flip = [reseq[0]];
+            for(var i = reseq.length-1; i > 0; i--){
+                flip.push( mod(reseq[i], lib.NUM_TONES) - lib.NUM_TONES );
+            }
+            console.log("flipped tones are", flip);
+            return new lib.Scale( flip, rename || this.name + " reversed", (this.r_adj ? lib.InvertAll( this.r_adj ) : null) );
+        };
         
         lib.Scale.prototype.findDegree = lib.ToneGroup.prototype.findTone;
         
