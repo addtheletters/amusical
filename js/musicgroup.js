@@ -167,7 +167,8 @@ var music = music || {};
             return this.r_adj ? lib.VecSum(this.tones, this.r_adj) : this.tones;
         }
         
-        // TODO test
+        // TODO allow for reversing to have special name (ex. melodic descending)
+        // the namifier functions are getting a bit out of hand though
         lib.Scale.prototype.getReverse = function( rename ){
             var reseq = this._getTonesRAdjusted();
             console.log("applying reverser to scale, new tones are", reseq);

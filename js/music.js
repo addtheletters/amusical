@@ -27,8 +27,8 @@ var music = music || {};
         var ret = [];
         var base_scale = sc.build(key);
         var cc_major = sc.extractChordClass([1, 3, 5], "triad");
-        // TODO add reverse when implemented
         ret.push(base_scale);
+        ret.push(base_scale.getReverse());
         ret.push(cc_major.build(key));
         return ret;
     };

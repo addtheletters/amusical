@@ -79,7 +79,7 @@ var music = music || {};
         lib.ChordClass.prototype = Object.create(lib.TGClass.prototype);
         lib.ChordClass.prototype.constructor = lib.ChordClass;
         
-        lib.ChordClass.prototype.builder = function(tones, name){
+        lib.ChordClass.prototype._builder = function(tones, name){
             return new lib.Chord(tones, name);
         };
         
