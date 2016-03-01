@@ -1,8 +1,6 @@
 
 var music = music || {};
 
-// TODO split into more manageable modules
-
 (function(lib){
     
     lib.scales = [ // fun fact: diatonic can mean a lot of things in different contexts
@@ -34,19 +32,14 @@ var music = music || {};
         return ret;
     };
     
-    lib.BuildRhythm = function( BPM, patterns, minBeatDuration, complexity ){
+    lib.BuildRhythm = function( duration, patterns, complexity ){
         // need to implement minBeatDuration
         // and also just make this less dumb in several ways
-        var rt = new lib.MusicNode( BPM );
+        var rt = new lib.MusicNode( duration );
         for(var i = 0; i < complexity; i++){
             lib.MutateRhythm(rt, patterns);
         }
-        /*
-        lib.FillByPattern(patterns.randomChoice(), true);
-        for(var i = 0; i < complexity; i++){
-            var tempnode = lib.value.randomChoice().FillByPattern(patterns.randomChoice(), true);
-        }
-        */
+        
         rt.reSequence();
         return rt;
     };
@@ -90,7 +83,7 @@ var music = music || {};
             return node;
         }
         if(pattern.length <= 0){
-            console.log("fill: pattern is invalid");
+            console.log("fill: pattern is invalid", pattern);
         }
         var patternTotal = pattern.sum();
         for(var i = 0; i < pattern.length; i++){
