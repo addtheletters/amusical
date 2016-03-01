@@ -106,7 +106,7 @@ var music = music || {};
             }
             //console.log("Indet with no other traits");
             return lib.ToneGroup.DIRECTION.INDETERMINATE;        
-        }
+        };
         
         // check if ends on same octave as start, reports how many octaves are spanned and in what direction
         lib.ToneGroup.prototype.bounds = function(){
@@ -116,7 +116,7 @@ var music = music || {};
                 min:    Math.min.apply(null,this.tones),
                 max:    Math.max.apply(null,this.tones)
             };
-        }
+        };
         
         lib.ToneGroup.prototype.checkBounds = function( root ){
             var bds = this.bounds();
@@ -127,12 +127,12 @@ var music = music || {};
             console.debug( "ToneGroup.checkBounds: sequence ends with " + lib.LetterizeNumber(bds.end) + ",", lib.ToneGroup.verifyOctave(bds.end, root), "octaves from the root octave" );
             console.debug( "ToneGroup.checkBounds: sequence max is " + lib.LetterizeNumber(bds.max) + ",", lib.ToneGroup.verifyOctave(bds.max, root), "octaves from the root octave" );
             console.debug( "ToneGroup.checkBounds: sequence min is " + lib.LetterizeNumber(bds.min) + ",", lib.ToneGroup.verifyOctave(bds.min, root), "octaves from the root octave" );
-        }
+        };
     
     // how many octaves is note away from the octave defined from root to 12 tones higher?
     lib.ToneGroup.verifyOctave = function( note, root ){
         return Math.floor( (note - root) / lib.NUM_TONES );
-    }
+    };
     
     lib.Chord = function( tones, name ){
         lib.ToneGroup.call(this, tones, name || "unnamed chord", "Chord");

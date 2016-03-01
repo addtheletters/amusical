@@ -127,4 +127,5 @@ Array.prototype.injectArray = function( index, arr ) {
     lib.TonesEquivalent = function( t1, t2 ){
         return mod(t1, lib.getNoteOrder().length) === mod(t2, lib.getNoteOrder().length);
     };
+    
 })(music);
