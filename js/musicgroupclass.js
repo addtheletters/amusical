@@ -9,8 +9,6 @@ var music = music || {};
     // but rather as the size of the steps between notes
     // this would allow easy key-switching in many cases
     
-    // TODO: figure out how to account for ascending vs descending scales; melodic minor scales?
-    
     lib.TGClass = function( intervals, name, namifier ){
         this.intervals = intervals;
         this.name = name || "unnamed tone group class";

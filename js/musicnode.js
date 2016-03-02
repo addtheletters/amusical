@@ -214,7 +214,7 @@ var music = music || {};
             
             var tns;
             if( filler.ordered ){
-                tns = filler.continueFrom( filler.findTone(this.getKey(), true), this.value.length, true ); // TODO this
+                tns = filler.continueFrom( filler.findTone(this.getKey(), true), this.value.length, true );
                 
                 for( var i = 0; i < this.value.length; i++){
                     this.value[i].Tune( lib.ShiftOctave(tns[ mod(i, tns.length) ]) ); // mod here should not be necessary
