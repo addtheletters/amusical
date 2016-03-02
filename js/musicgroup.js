@@ -171,12 +171,12 @@ var music = music || {};
         // the namifier functions are getting a bit out of hand though
         lib.Scale.prototype.getReverse = function( rename ){
             var reseq = this._getTonesRAdjusted();
-            console.log("applying reverser to scale, new tones are", reseq);
+            //console.log("applying reverser to scale, new tones are", reseq);
             var flip = [reseq[0]];
             for(var i = reseq.length-1; i > 0; i--){
                 flip.push( mod(reseq[i], lib.NUM_TONES) - lib.NUM_TONES );
             }
-            console.log("flipped tones are", flip);
+            //console.log("flipped tones are", flip);
             return new lib.Scale( flip, rename || this.name + " reversed", (this.r_adj ? lib.InvertAll( this.r_adj ) : null) );
         };
         

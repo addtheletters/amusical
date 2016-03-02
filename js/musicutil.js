@@ -46,7 +46,7 @@ Array.prototype.injectArray = function( index, arr ) {
 
     lib.ParseLetter = function( letr ){
         if( typeof letr !== 'string' ){
-            console.debug("ParseLetter: non-string letter designation, returning original");
+            //console.debug("ParseLetter: non-string letter designation, returning original");
             return letr;
         }
         if(letr.length < 1){
@@ -151,6 +151,23 @@ Array.prototype.injectArray = function( index, arr ) {
     
     lib.TonesEquivalent = function( t1, t2 ){
         return mod(t1, lib.getNoteOrder().length) === mod(t2, lib.getNoteOrder().length);
+    };
+    
+    lib.IsXTonic = function( x_tones, subject ){
+        return lib.FindXTonicity(subject) === x_tones;
+    };
+    
+    lib.FindXTonicity = function(subject){
+        if( subject instanceof lib.ToneGroup ){
+            return subject.tones.length;
+        }
+        if(subject instanceof lib.TGClass){
+            return subject.intervals.length;
+        }
+        if(subject.length){
+            return subject.length;
+        }
+        return 0;
     };
     
 })(music);

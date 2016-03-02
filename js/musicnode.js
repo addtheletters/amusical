@@ -65,10 +65,10 @@ var music = music || {};
                 return this.value.getKey();
             }
             else if(this.skey){
-                console.debug("MusicNode: getKey: retreived structural key");
+                //console.debug("MusicNode: getKey: retreived structural key");
                 return this.skey;
             }
-            console.debug("MusicNode: getKey: no known key");
+            //console.debug("MusicNode: getKey: no known key");
             return;
         }
         
@@ -184,8 +184,8 @@ var music = music || {};
             return tones;
         }
 
-        lib.MusicNode.prototype.getRemainingSpace = function( useSequence ){
-            return this.duration - this.getInternalDuration( useSequence );
+        lib.MusicNode.prototype.getRemainingSpace = function( ){
+            return this.duration - this.getInternalDuration( true ); // note: perhaps allow for no usage of sequence
         }
         lib.MusicNode.prototype.FillEvenly = function(numBeats, noReSeq){
             return lib.FillEvenly(this, numBeats, noReSeq);
@@ -207,7 +207,7 @@ var music = music || {};
         
         lib.MusicNode.prototype.ToneFill = function(filler, noRandomDuplicates){
             if( this.isLeaf() ){
-                console.debug("MusicNode: ToneFill: node is a leaf, filling with filler key");
+                //console.debug("MusicNode: ToneFill: node is a leaf, filling with filler key");
                 this.Tune( lib.ShiftOctave(this.getKey()));
                 return;
             }

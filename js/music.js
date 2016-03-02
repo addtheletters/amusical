@@ -7,8 +7,8 @@ var music = music || {};
         new lib.Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],  "chromatic 12 tone"), // chromatic (all 12 tones)
         new lib.Scale([0, 2, 4, 5, 7, 9, 11],                  "C major"), // diatonic C major
         new lib.Scale([7, 9, 11, 0, 2, 4, 6],                  "G major"), // diatonic G major
-        new lib.Scale(["C","Eb","F","F#","G","Bb"],            "pentatonic minor blues C"), // they say pentatonic scales sound good even when mashing
-        new lib.Scale(["E","F#","G","G#","B","C#"],            "pentatonic major blues E"),
+        new lib.Scale(["C","Eb","F","F#","G","Bb"],            "minor blues C"), // they say pentatonic scales sound good even when mashing
+        new lib.Scale(["E","F#","G","G#","B","C#"],            "major blues E"),
         new lib.Scale([0, 2, 4, 7, 9],                         "pentatonic major from C"), 
         new lib.Scale(["D","F","G","A","C"],                   "pentatonic minor from D"),
         new lib.Scale(["C","C#","F","G","A#"],                 "pentatonic insen from C"), // "japanese" mode
@@ -20,16 +20,30 @@ var music = music || {};
         new lib.ScaleClass([2, 2, 1, 2, 2, 2], "major"), // the final step is implied to be the return to the root / key of the scale
         new lib.ScaleClass([2, 1, 2, 2, 1, 2], "natural minor"),
         new lib.ScaleClass([2, 1, 2, 2, 1, 3], "harmonic minor"),
-        new lib.ScaleClass([2, 1, 2, 2, 2, 2], "melodic minor", null, [0, 0, 0, 0, 0, -1, -1])
+        new lib.ScaleClass([2, 1, 2, 2, 2, 2], "melodic minor", null, [0, 0, 0, 0, 0, -1, -1]),
+        new lib.ScaleClass([2, 2, 3, 2], "pentatonic major"),
+        new lib.ScaleClass([3, 2, 2, 3], "pentatonic minor")
     ];
     
     lib.CreateFillers = function(sc, key){
         var ret = [];
         var base_scale = sc.build(key);
-        var cc_major = sc.extractChordClass([1, 3, 5], "triad");
+       
         ret.push(base_scale);
         ret.push(base_scale.getReverse());
-        ret.push(cc_major.build(key));
+        
+        if( lib.IsXTonic(7, base_scale) ){
+            console.debug("Base scale for fillers is diatonic.");
+            var cc_major = sc.extractChordClass([1, 3, 5], "triad");
+            ret.push(cc_major.build(key));
+        }
+        
+        if( lib.IsXTonic(5, base_scale) ){
+            console.debug("Base scale for fillers is pentatonic.");
+            // pentatonics can sound good jumping from a note to any other
+            ret.push( new lib.ToneGroup(base_scale.pickTones(), base_scale.name + " deordered") );
+        }
+        
         return ret;
     };
     
