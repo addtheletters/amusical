@@ -12,10 +12,17 @@
     <script src="inc/shim/Base64binary.js" type="text/javascript"></script>
     <script src="inc/shim/WebAudioAPI.js" type="text/javascript"></script>
     
-    <script src="js/music.js">/* music node stuff */</script>
+    <script src="js/musicconst.js">/* constants for music library */</script>
+    <script src="js/musicutil.js">/* utility functions and vanilla extensions for music library */</script>
+    <script src="js/musicnote.js">/* wrapper for notes */</script>
+    <script src="js/musicgroup.js">/* groups of tones */</script>
+    <script src="js/musicgroupclass.js">/* easy building of tone groups */</script>
+    <script src="js/musicnode.js">/* structural node class */</script>
+    <script src="js/music.js">/* music node stuff, building rhythm, tonalization */</script>
+    
     <script src="js/colors.js">/* color functions */</script>
     <script src="js/plotting.js">/* extremely simple canvas drawing */</script>
-    <script src="js/sequencerealizer.js">/* rendering node as html */</script>
+    <script src="js/musicrender.js">/* rendering node as html */</script>
     <script src="js/musiccanvas.js">/* showing nodes on a canvas */</script>
     <link rel="stylesheet" type="text/css" href="css/realized.css">
     <link rel="stylesheet" type="text/css" href="css/musiclabels.css"> 
@@ -34,7 +41,7 @@
     var colors = colors || getColorsLib();
     
     function getIndicHSV(note){
-        intensity = ( Math.pow( note.toSPN().octave, 1.5) / Math.pow(4, 1.5));
+        intensity = ( Math.pow( note.octave(), 1.5) / Math.pow(4, 1.5));
         noteHSV = {
             h:mod(note.num, music.NUM_TONES) / music.NUM_TONES,
             s:1,
@@ -114,12 +121,17 @@
     }
 
     function newSection() {
-        var noda = music.BuildRhythm(4, music.PATTERNS, 10, 5);
-        var sca = music.scaleClasses.randomChoice().buildScale(Math.floor(Math.random()*music.getNoteOrder().length));
-        music.Tonalize(noda, sca.pickTones());
+        var noda = music.BuildRhythm(4, music.PATTERNS, 5);
+        /*
+        var sca = music.scaleClasses.randomChoice().build(Math.floor(Math.random()*music.getNoteOrder().length));
+        music.RandomTonalize(noda, sca.pickTones());
+        */
+        var fillers = music.CreateFillers(music.scaleClasses.randomChoice(), Math.floor(Math.random()*music.getNoteOrder().length));
+        music.ScaleTonalize( noda, fillers );
+        
         showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
-        showInfo(sca, 0); // make scales a js object so they can be named / categorized?
+        showInfo(fillers, 0);
         dispnodes.push(noda);
         last_shown = noda;
         testRender();
@@ -154,6 +166,6 @@
         <hr>
         <canvas id="drawspace" width="1050" height="200" style="border: 1px solid black"></canvas>
     </div>
-    <span id="version" >v0.03</span>
+    <span id="version" >v0.19</span>
 </body>
 </html>

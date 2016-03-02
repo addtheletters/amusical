@@ -1,4 +1,38 @@
 
+There are a few music generation projects I have seen which use neural networks. Cellular automata. 
+Someone has probably also already tried the approach being attempted here: building melodies out of patterns,
+which are repeated and copied with slight alterations made.
+
+I feel like cellular automata is sort of just slapping a music label on top of patterns that are cool for other reasons,
+and that neural networks, while very cool, are removed from the art of composition in how they are often implemented to generate music.
+What aspects of training data are chosen to be important? How does one choose that? Maybe, with this projects' patterns, 
+a cool neural network solution could be built that generates melodies in a truly musical way, rather than adapting neural net patterns
+from language analysis (based off music transcribed as words / letters) or with a seemingly random number and size of hidden layers 
+thrown in to try and hack through the question of what it means to compose. (links to be inserted)
+
+This project therefore attempts to generate music from the ground up, without the use of neural networks or cellular automata.
+There are sects of music theory which believe that music is founded off of patterns and repetition. Essentially, good music
+trains the mind with expectations and then either satisfies those expectations or thwarts them. A bass line
+keeping the beat is fundamental to a song sounding good. A melody should be recognizable and occur more than once. 
+Whole sections appear multiple times in a song, and can be labeled with letters or numbers or both. Multiple pieces and sections
+of pieces can be just slight variations off a single pattern. 
+The thwarting of these patterns makes the music interesting. These deviations could be slightly different rhythm, or pitch,
+or silence where there used to be a note... or even a switch to an entirely different pattern.
+
+So here, musical melodies are represented as tree nodes, with children stored in an ordered list of varying size. 
+Each node spans a length of time, and the time lengths of all children add up to this total time. 
+Thus, children represent a division of a melody into distinct time fragments, which may or may not be equal in length.
+The leaves of this tree are notes or rests or chords; things that can actually be played. The sum of the times of 
+all roots of a tree will be the total time of the root node; a melody node could be played without knowledge of 
+the internal structure if a list of these leaves is obtained from it. 
+
+Each of these nodes is then a modular piece, a pattern, that can be repeated and combined and mutated at will. 
+The repretition of these nodes is where the repeated patterns of the music comes from. 
+The mutation and recombination creates the suspense and stimulation.
+
+At some point I'm going to have to do some legitimate research and write some sort of paper with citations,
+but that day is not today. What a load of sourceless writing. 
+
 
 need *scales*
 on which to
