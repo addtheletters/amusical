@@ -38,8 +38,6 @@
     var loop_timeout;
     var should_loop;
     
-    var colors = colors || getColorsLib();
-    
     // TODO: maybe make the still-global functions shared between files not do that
     function getIndicHSV(note){
         intensity = ( Math.pow( note.octave(), 1.5) / Math.pow(4, 1.5));
@@ -54,8 +52,7 @@
     function loadCanvas() {
         document.title = titles.randomChoice();
 
-        leCanvas = document.getElementById(canvasID);
-        leContext = leCanvas.getContext("2d");
+        music.CNVS.setCanvas( document.getElementById(canvasID) );
         
         MIDI.loadPlugin({
             soundfontUrl: "./soundfont/",
@@ -130,7 +127,7 @@
         var fillers = music.CreateFillers(music.scaleClasses.randomChoice(), Math.floor(Math.random()*music.getNoteOrder().length));
         music.ScaleTonalize( noda, fillers );
         
-        showNode(noda, 20, 20, 1000, 150, 20);
+        music.CNVS.showNode(noda, 20, 20, 1000, 150, 20);
         clearInfo();
         showInfo(fillers, 0);
         dispnodes.push(noda);
