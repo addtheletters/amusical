@@ -25,6 +25,16 @@ var music = music || {};
         new lib.ScaleClass([3, 2, 2, 3], "pentatonic minor")
     ];
     
+    lib.getIndicHSV = function(note){
+        var intensity = ( Math.pow( note.octave(), 1.5) / Math.pow(4, 1.5));
+        var noteHSV = {
+            h:mod(note.num, lib.NUM_TONES) / lib.NUM_TONES,
+            s:1,
+            v:intensity/1.5
+        };
+        return noteHSV;
+    };
+    
     lib.CreateFillers = function(sc, key){
         var ret = [];
         var base_scale = sc.build(key);

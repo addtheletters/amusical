@@ -38,17 +38,6 @@
     var loop_timeout;
     var should_loop;
     
-    // TODO: maybe make the still-global functions shared between files not do that
-    function getIndicHSV(note){
-        intensity = ( Math.pow( note.octave(), 1.5) / Math.pow(4, 1.5));
-        noteHSV = {
-            h:mod(note.num, music.NUM_TONES) / music.NUM_TONES,
-            s:1,
-            v:intensity/1.5
-        };
-        return noteHSV;
-    }
-    
     function loadCanvas() {
         document.title = titles.randomChoice();
 
@@ -138,10 +127,10 @@
     function testRender(){
         var rdr = document.getElementById("render");
         if( rdr.children.length < 1 ){
-            rdr.appendChild( renderNode(last_shown, 1000, 0) );
+            rdr.appendChild( music.RENDER.renderNode(last_shown, 1000, 0) );
         }
         else{
-            rdr.replaceChild( renderNode(last_shown, 1000, 0), rdr.firstChild )
+            rdr.replaceChild( music.RENDER.renderNode(last_shown, 1000, 0), rdr.firstChild );
         }
     }
 
@@ -163,6 +152,6 @@
         <hr>
         <canvas id="drawspace" width="1050" height="200" style="border: 1px solid black"></canvas>
     </div>
-    <span id="version" >v0.20</span>
+    <span id="version" >v0.21</span>
 </body>
 </html>

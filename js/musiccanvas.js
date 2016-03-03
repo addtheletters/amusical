@@ -3,7 +3,7 @@ var plot = plot || {};
 
 (function(lib){
     
-    lib.CNVS = {};
+    lib.CNVS = lib.CNVS || {};
     
     lib.CNVS._cvs;
     lib.CNVS._ctx;
@@ -36,7 +36,7 @@ var plot = plot || {};
                 lastStartPos += subwidth;
             }
         }
-        else if(node.value instanceof music.Note){
+        else if(node.value instanceof lib.Note){
             plot.Text(node.value.getNum(), lib.CNVS._ctx, x + 3, y + yshrink, lib.CNVS.DEFAULT_TEXT_WIDTH, lib.CNVS.DEFAULT_FONT, lib.CNVS.DEFAULT_TEXT_FILL, lib.CNVS.DEFAULT_TEXT_STROKE);
             plot.Text(node.value.toSPN(), lib.CNVS._ctx, x + 3, y + yshrink + lib.CNVS.FONT_SIZE, lib.CNVS.DEFAULT_TEXT_WIDTH, lib.CNVS.DEFAULT_FONT, lib.CNVS.DEFAULT_TEXT_FILL, lib.CNVS.DEFAULT_TEXT_STROKE);
         }
@@ -45,8 +45,8 @@ var plot = plot || {};
 
     lib.CNVS.getStyle = function(node, level) {
         //level = level || 0;
-        if (node.value instanceof music.Note) {
-            return colors.getStyleFromRGB(colors.HSVtoRGB(getIndicHSV(node.value)));
+        if (node.value instanceof lib.Note) {
+            return colors.getStyleFromRGB(colors.HSVtoRGB(lib.getIndicHSV(node.value)));
         }
         else if (node.value instanceof Array) {
             if(!level){
