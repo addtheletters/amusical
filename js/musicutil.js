@@ -153,6 +153,11 @@ Array.prototype.injectArray = function( index, arr ) {
         return mod(t1, lib.getNoteOrder().length) === mod(t2, lib.getNoteOrder().length);
     };
     
+    // how many octaves is note away from the octave defined from root to 12 tones higher?
+    lib.VerifyOctave = function( note, root ){
+        return Math.floor( (note - root) / lib.NUM_TONES );
+    };
+    
     lib.IsXTonic = function( x_tones, subject ){
         return lib.FindXTonicity(subject) === x_tones;
     };

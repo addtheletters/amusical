@@ -123,16 +123,11 @@ var music = music || {};
             if( root != bds.begin ){
                 console.debug("ToneGroup.checkBounds: sequence does not begin on root tone");
             }
-            console.debug( "ToneGroup.checkBounds: sequence begins with " + lib.LetterizeNumber(bds.begin) + ",", lib.ToneGroup.verifyOctave(bds.begin, root), "octaves from the root octave" );
-            console.debug( "ToneGroup.checkBounds: sequence ends with " + lib.LetterizeNumber(bds.end) + ",", lib.ToneGroup.verifyOctave(bds.end, root), "octaves from the root octave" );
-            console.debug( "ToneGroup.checkBounds: sequence max is " + lib.LetterizeNumber(bds.max) + ",", lib.ToneGroup.verifyOctave(bds.max, root), "octaves from the root octave" );
-            console.debug( "ToneGroup.checkBounds: sequence min is " + lib.LetterizeNumber(bds.min) + ",", lib.ToneGroup.verifyOctave(bds.min, root), "octaves from the root octave" );
+            console.debug( "ToneGroup.checkBounds: sequence begins with " + lib.LetterizeNumber(bds.begin) + ",", lib.VerifyOctave(bds.begin, root), "octaves from the root octave" );
+            console.debug( "ToneGroup.checkBounds: sequence ends with " + lib.LetterizeNumber(bds.end) + ",", lib.VerifyOctave(bds.end, root), "octaves from the root octave" );
+            console.debug( "ToneGroup.checkBounds: sequence max is " + lib.LetterizeNumber(bds.max) + ",", lib.VerifyOctave(bds.max, root), "octaves from the root octave" );
+            console.debug( "ToneGroup.checkBounds: sequence min is " + lib.LetterizeNumber(bds.min) + ",", lib.VerifyOctave(bds.min, root), "octaves from the root octave" );
         };
-    
-    // how many octaves is note away from the octave defined from root to 12 tones higher?
-    lib.ToneGroup.verifyOctave = function( note, root ){
-        return Math.floor( (note - root) / lib.NUM_TONES );
-    };
     
     lib.Chord = function( tones, name ){
         lib.ToneGroup.call(this, tones, name || "unnamed chord", "Chord");
