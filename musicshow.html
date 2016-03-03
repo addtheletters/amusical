@@ -40,6 +40,7 @@
     
     var colors = colors || getColorsLib();
     
+    // TODO: maybe make the still-global functions shared between files not do that
     function getIndicHSV(note){
         intensity = ( Math.pow( note.octave(), 1.5) / Math.pow(4, 1.5));
         noteHSV = {

@@ -1,3 +1,4 @@
+/* global getIndicHSV */
 // intended to render sequences into interactive html
 
 /** returns DOM object */
