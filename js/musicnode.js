@@ -30,6 +30,21 @@ var music = music || {};
             return !(this.value instanceof Array);
         }
         
+        lib.MusicNode.prototype.getChildPosition = function(){
+            if(!this.parent){
+                console.debug("MusicNode: getChildPosition: batman error (no parent)");
+            }
+            return this.parent.value.indexOf(this);
+        }
+        
+        lib.MusicNode.prototype.isFirstChild = function(){
+            return this.getChildPosition() == 0;
+        }
+        
+        lib.MusicNode.prototype.isLastChild = function(){
+            return this.getChildPosition() == this.parent.value.length-1;
+        }
+        
         lib.MusicNode.prototype.play = function( controller, channel, volume ){
             if(this.domElement){
                 this.domElement.classList.add("playing");

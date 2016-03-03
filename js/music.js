@@ -141,6 +141,11 @@ var music = music || {};
     // tonalize based off the previous note values in the sequence.
     lib.SequentialTonalize = function(node, fillers){
         console.debug("SEQUENTIAL TONALIZE UNIMPLEMENTED");
+        var filler = fillers.randomChoice();
+        // no filling immediately! this should be a prefix walk, rather than scaletonalize's infix(?) walk
+        for(var i = 0; i < node.value.length; i++){
+            // TODO this
+        }
         return "UNIMPLEMENTED";
     }
  
